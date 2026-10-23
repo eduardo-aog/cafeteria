@@ -1,18 +1,20 @@
 # Progreso del proyecto
 
 ## Estado actual
-- Fase: 1 — Base del repositorio
-- Rama: feat/fase-01-base
-- Paso: esperando ⛔ PARADA 1.Z — Cierre de la Fase 1
+- Fase: 1 — cerrada. Siguiente: Fase 2 — Esquema de datos (no iniciada)
+- Rama: main
+- Paso: esperando instrucción del usuario para iniciar la Fase 2
 
 ## Paradas confirmadas
 - 0.A Requisitos previos — 2026-10-23
 - 1.A Supabase y archivos .env — 2026-10-23 (incluye 1.E1: la VPN bloqueaba el puerto 5432; `DIRECT_URL` verificada por el usuario con `prisma db execute`)
+- 1.Z Cierre de la Fase 1 — 2026-10-23
 
 ## Fases cerradas
-- (ninguna todavía)
+- Fase 1 — Base del repositorio (unida a main el 2026-10-23, PR #1)
 
 ## Decisiones menores tomadas
+- Fase 1: el repositorio de GitHub pasó a ser público (decisión del usuario, para facilitar el despliegue). Ningún `.env` ni clave está en el historial.
 - Fase 1: `@hookform/resolvers` fijado en la versión 5 (la 6.0.0 da conflicto de peer dependencies con npm).
 - Fase 1: shadcn (preset `nova`, base `radix`) usa el paquete `cn` (mantenido por shadcn-ui) en vez de `clsx` + `tailwind-merge`. Se conserva tal como lo genera la CLI.
 - Fase 1: `button.tsx`, `card.tsx` y `sonner.tsx` se ajustaron a 10.6 (alto mínimo 44 px, borde de 1 px sin anillo, radio de 10 px, sin `dark:` ni `next-themes`, transiciones de 150 ms).
