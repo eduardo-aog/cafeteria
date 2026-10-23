@@ -29,6 +29,7 @@ menuRouter.get('/menu', async (_req, res) => {
   res.json({
     products: sortProducts(products).map((p) => toProductDto(p, rate)),
     rate: rateDto(rate),
+    limits: { maxQuantityPerProduct: settings.maxQuantityPerProduct },
     store: {
       isOpen,
       openDays: settings.openDays,

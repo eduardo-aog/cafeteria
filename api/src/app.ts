@@ -8,6 +8,7 @@ import { meRouter } from './routes/me.js'
 import { menuRouter } from './routes/menu.js'
 import { managerRouter } from './routes/manager.js'
 import { adminRouter } from './routes/admin.js'
+import { checkoutRouter } from './routes/checkout.js'
 import { errorHandler, notFound } from './middleware/error.js'
 
 export const app = express()
@@ -22,6 +23,7 @@ app.use('/api', meRouter)
 app.use('/api', menuRouter)
 app.use('/api', managerRouter)
 app.use('/api', adminRouter)
+app.use('/api', checkoutRouter)
 
 app.use(notFound)
 app.use(errorHandler)
