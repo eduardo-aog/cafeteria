@@ -3,10 +3,11 @@
 ## Estado actual
 - Fase: 1 — Base del repositorio
 - Rama: feat/fase-01-base
-- Paso: esperando ⛔ PARADA 1.E1 — Puerto 5432 de Supabase sin respuesta (parte de la 1.A: `.env` y Supabase ya verificados; falta `DIRECT_URL`)
+- Paso: esperando ⛔ PARADA 1.Z — Cierre de la Fase 1
 
 ## Paradas confirmadas
 - 0.A Requisitos previos — 2026-10-23
+- 1.A Supabase y archivos .env — 2026-10-23 (incluye 1.E1: la VPN bloqueaba el puerto 5432; `DIRECT_URL` verificada por el usuario con `prisma db execute`)
 
 ## Fases cerradas
 - (ninguna todavía)
@@ -18,6 +19,7 @@
 - Fase 1: `npm run dev:https` en `web/` es `vite --host --mode https`; el plugin `@vitejs/plugin-basic-ssl` solo se activa con `mode === 'https'`.
 - Fase 1: `lint` en `web/` usa ESLint (la plantilla de Vite traía oxlint, se reemplazó por lo que pide la sección 2).
 - Fase 1: contraste de bordes de campos: se mantiene `#E4DACB` para tarjetas y separadores y se usará un borde más oscuro (propuesto `#8F7E6D`, 3,5:1) solo en campos de formulario y botones outline (decisión del usuario, 2026-10-23; se implementa en la Fase 3).
+- Fase 1: con la VPN activa el puerto 5432 (`DIRECT_URL`) no responde. Las migraciones (Fase 2 en adelante) requieren desactivar la VPN o excluir `*.pooler.supabase.com` de su túnel. `DATABASE_URL` (6543) funciona con VPN.
 - Fase 1: `GET /api/health/db` usa Prisma (`$queryRaw`); el esquema de Prisma queda vacío (solo generator y datasource) hasta la Fase 2.
 
 ## Contraste de la paleta (10.6, mínimo AA)
