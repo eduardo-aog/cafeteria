@@ -31,6 +31,14 @@ const BANKS = [
   ['0191', 'BNC Banco Nacional de Crédito'],
 ] as const
 
+// Cuentas de demostración (15): todas con la contraseña SEED_DEMO_PASSWORD.
+const DEMO_USERS = [
+  { email: 'cajero@demo.com', name: 'Cajero Demo', canCashier: true, pointsBalance: 0 },
+  { email: 'barista@demo.com', name: 'Barista Demo', canBarista: true, pointsBalance: 0 },
+  { email: 'gerente@demo.com', name: 'Gerente Demo', canManager: true, pointsBalance: 0 },
+  { email: 'cliente@demo.com', name: 'Cliente Demo', pointsBalance: 1500 },
+]
+
 // Devuelve el id del usuario de Auth con ese correo; lo crea si no existe.
 async function ensureAuthUser(email: string, password: string): Promise<string> {
   const created = await supabaseAdmin.auth.admin.createUser({
@@ -86,7 +94,20 @@ async function main() {
     },
   })
 
-  console.log(`Seed listo: Settings, ${BANKS.length} bancos y administrador.`)
+  for (const demo of DEMO_USERS) {
+    const { email, name, pointsBalance, ...permissions } = demo
+    const id = await ensureAuthUser(email, seed.SEED_DEMO_PASSWORD)
+    // `update` sin pointsBalance: volver a correr el seed no reinicia los puntos.
+    await prisma.user.upsert({
+      where: { id },
+      update: { name, email, ...permissions },
+      create: { id, name, email, pointsBalance, ...permissions },
+    })
+  }
+
+  console.log(
+    `Seed listo: Settings, ${BANKS.length} bancos, administrador y ${DEMO_USERS.length} cuentas de demostración.`,
+  )
 }
 
 main()

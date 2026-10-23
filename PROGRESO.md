@@ -1,18 +1,20 @@
 # Progreso del proyecto
 
 ## Estado actual
-- Fase: 2 — Esquema de datos
-- Rama: feat/fase-02-esquema
-- Paso: esperando ⛔ PARADA 2.Z — Cierre de la Fase 2
+- Fase: 3 — Autenticación y permisos
+- Rama: feat/fase-03-auth
+- Paso: esperando ⛔ PARADA 3.Z — Cierre de la Fase 3
 
 ## Paradas confirmadas
 - 0.A Requisitos previos — 2026-10-23
 - 1.A Supabase y archivos .env — 2026-10-23 (incluye 1.E1: la VPN bloqueaba el puerto 5432; `DIRECT_URL` verificada por el usuario con `prisma db execute`)
 - 1.Z Cierre de la Fase 1 — 2026-10-23
 - 2.E1 Conexión por `DIRECT_URL` (VPN activa) — 2026-10-23
+- 2.Z Cierre de la Fase 2 — 2026-10-23
 
 ## Fases cerradas
 - Fase 1 — Base del repositorio (unida a main el 2026-10-23, PR #1)
+- Fase 2 — Esquema de datos (unida a main el 2026-10-23, PR #2)
 
 ## Decisiones menores tomadas
 - Fase 1: el repositorio de GitHub pasó a ser público (decisión del usuario, para facilitar el despliegue). Ningún `.env` ni clave está en el historial.
@@ -28,6 +30,14 @@
 - Fase 2: `paymentDocNumber` del seed es `123456789` (tipo `J` aparte, se muestra `J-12345678-9`). El `upsert` de `Settings` no pisa valores ya editados.
 - Fase 2: se añadió `src/lib/supabase.ts` (cliente admin) y los scripts `db:migrate`, `db:deploy`, `db:seed` y `db:studio`. `db:seed:sales` y `db:reset-demo` llegan en las fases 9 y 10.
 - Fase 2: el bloque de RLS también cubre `_prisma_migrations` (tabla de Prisma). Toda migración futura que cree tablas debe repetir el bloque (7.2a).
+- Fase 3: `--input` pasa a `#8F7E6D` (campos de formulario y botones outline, implementa la decisión de la Fase 1); `--border` sigue en `#E4DACB` para tarjetas y separadores.
+- Fase 3: `/me` devuelve `permissions` ya efectivos (`manager` incluye al administrador; `cashier` y `barista` no se heredan de `isAdmin`) más `isStaff` y `pointsBalance`.
+- Fase 3: el correo se normaliza a minúsculas en registro e inicio de sesión. Correo repetido → 409 `EMAIL_TAKEN`.
+- Fase 3: la lógica de permisos vive en `domain/permissions.ts` (pura, con pruebas) y los middlewares de permisos en `middleware/permissions.ts`, separados de `requireAuth` para poder probarlos sin Supabase.
+- Fase 3: la prueba de integración de 403 usa una app de Express de prueba que inyecta `req.user` en lugar de `requireAuth` (no hay aún rutas reales por permiso). La verificación real contra Supabase (login de las 5 cuentas, `/me`, registro, correo duplicado) se ejecutó con un script temporal, no versionado.
+- Fase 3: las pantallas de cliente (menú, checkout, pedidos, puntos) y las secciones de `/trabajo` son marcadores de posición (`PagePlaceholder`) hasta sus fases. `/cuenta` y el cierre de sesión ya funcionan.
+- Fase 3: se eliminó `ThemePreview` (página de prueba de la Fase 1); `/` ahora redirige según la cuenta.
+- Fase 3: el puerto 5173 estaba ocupado por un Vite anterior (proceso ajeno a esta sesión); las comprobaciones del agente usaron el 5174.
 
 ## Contraste de la paleta (10.6, mínimo AA)
 | Pareja | Ratio |
@@ -51,5 +61,8 @@
 | Etiqueta «Expirado» (muted-foreground / muted) | 5,41:1 |
 | Aviso de pago (warning sobre warning 10 %) | 4,68:1 |
 | ring / background (no texto, mínimo 3:1) | 5,74:1 |
+| input (`#8F7E6D`) / card (borde de campos, mínimo 3:1) | 3,85:1 |
+| input / background | 3,53:1 |
+| input / muted | 3,21:1 |
 
-**Resuelto (ver Decisiones menores):** `--border` / `--input` (`#E4DACB`) sobre el fondo da 1,25:1, por debajo del 3:1 que 10.6 exige a los bordes de controles. La paleta fijada y la regla se contradicen; se resuelve antes de construir formularios (Fase 3).
+**Resuelto en la Fase 3 (ver Decisiones menores):** `--border` / `--input` (`#E4DACB`) sobre el fondo da 1,25:1, por debajo del 3:1 que 10.6 exige a los bordes de controles. La paleta fijada y la regla se contradicen; se resuelve antes de construir formularios (Fase 3).
