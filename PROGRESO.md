@@ -1,9 +1,9 @@
 # Progreso del proyecto
 
 ## Estado actual
-- Fase: 1 — cerrada. Siguiente: Fase 2 — Esquema de datos (no iniciada)
-- Rama: main
-- Paso: esperando instrucción del usuario para iniciar la Fase 2
+- Fase: 2 — Esquema de datos
+- Rama: feat/fase-02-esquema
+- Paso: `schema.prisma` completo (7.1) y con commit; esperando ⛔ PARADA 2.E1 — Conexión a la base de datos por `DIRECT_URL` (puerto 5432) para crear la migración inicial (`env:check` OK, no hace falta la 2.A)
 
 ## Paradas confirmadas
 - 0.A Requisitos previos — 2026-10-23
