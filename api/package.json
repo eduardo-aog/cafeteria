@@ -15,7 +15,11 @@
     "format": "prettier --write .",
     "test": "vitest run --passWithNoTests",
     "env:check": "tsx scripts/env-check.ts",
-    "supabase:check": "tsx scripts/supabase-check.ts"
+    "supabase:check": "tsx scripts/supabase-check.ts",
+    "db:migrate": "prisma migrate dev",
+    "db:deploy": "prisma migrate deploy",
+    "db:seed": "tsx prisma/seed.ts",
+    "db:studio": "prisma studio"
   },
   "dependencies": {
     "@prisma/client": "^6.19.3",
