@@ -4,6 +4,8 @@ import { Price } from '@/components/Price'
 import { ProductImage } from '@/components/ProductImage'
 import { EmptyBlock, ErrorBlock, LoadingBlock } from '@/components/QueryState'
 import { StatusBadge } from '@/components/StatusBadge'
+import { ViewToggle } from '@/components/ViewToggle'
+import { gridColumnsClass, useGridColumns } from '@/hooks/useGridColumns'
 import { useMenu } from '@/hooks/useMenu'
 import { describeOpening, formatBs, formatShortDate } from '@/lib/format'
 import { CATEGORY_LABELS, type Category, type Product } from '@/lib/types'
@@ -12,6 +14,7 @@ const CATEGORIES: Category[] = ['CAFE', 'BEBIDAS', 'POSTRES']
 
 export default function MenuPage() {
   const menu = useMenu()
+  const [columns, setColumns] = useGridColumns()
 
   if (menu.isPending) return <LoadingBlock />
   if (menu.isError)
@@ -21,7 +24,10 @@ export default function MenuPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="text-2xl">Menú</h1>
+      <div className="flex items-center justify-between gap-3">
+        <h1 className="text-2xl">Menú</h1>
+        <ViewToggle value={columns} onChange={setColumns} />
+      </div>
 
       {!store.isOpen && (
         <div className="flex items-start gap-2 rounded-lg bg-secondary p-3 text-sm text-secondary-foreground">
@@ -41,7 +47,7 @@ export default function MenuPage() {
         return (
           <section key={category} className="flex flex-col gap-3">
             <h2 className="text-lg">{CATEGORY_LABELS[category]}</h2>
-            <ul className="grid grid-cols-2 gap-3">
+            <ul className={`grid gap-3 ${gridColumnsClass(columns)}`}>
               {items.map((product) => (
                 <li key={product.id}>
                   <ProductCard product={product} />
