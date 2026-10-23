@@ -10,6 +10,7 @@ import WorkLayout from '@/layouts/WorkLayout'
 import LoginPage from '@/pages/auth/LoginPage'
 import RegisterPage from '@/pages/auth/RegisterPage'
 import AccountPage from '@/pages/customer/AccountPage'
+import CheckoutPage from '@/pages/customer/CheckoutPage'
 import MenuPage from '@/pages/customer/MenuPage'
 import ProductPage from '@/pages/customer/ProductPage'
 import CatalogPage from '@/pages/staff/CatalogPage'
@@ -43,7 +44,7 @@ export default function App() {
               <Route element={<CustomerLayout />}>
                 <Route path="/menu" element={<MenuPage />} />
                 <Route path="/producto/:id" element={<ProductPage />} />
-                <Route path="/checkout" element={<PagePlaceholder title="Checkout" />} />
+                <Route path="/checkout" element={<CheckoutPage />} />
                 <Route path="/pedidos" element={<PagePlaceholder title="Pedidos" />} />
                 <Route path="/puntos" element={<PagePlaceholder title="Puntos" />} />
                 <Route path="/cuenta" element={<AccountPage />} />

@@ -69,3 +69,14 @@ export function describeOpening(nextOpening: string, now: Date = new Date()): st
   const when = days <= 0 ? 'hoy' : days === 1 ? 'mañana' : `el ${WEEKDAYS[opening.weekday - 1]}`
   return `${when} a las ${formatTime(nextOpening)}`
 }
+
+// Tiempo que falta para que expire un checkout: "23 h 59 min", "2 h", "45 min".
+export function formatRemaining(expiresAt: string | Date, now: Date = new Date()): string {
+  const ms = new Date(expiresAt).getTime() - now.getTime()
+  if (ms <= 0) return 'unos segundos'
+  const totalMinutes = Math.ceil(ms / 60_000)
+  const hours = Math.floor(totalMinutes / 60)
+  const minutes = totalMinutes % 60
+  if (hours === 0) return `${minutes} min`
+  return minutes === 0 ? `${hours} h` : `${hours} h ${minutes} min`
+}

@@ -1,9 +1,11 @@
 import { Link } from 'react-router-dom'
-import { Clock } from 'lucide-react'
+import { Clock, Plus } from 'lucide-react'
 import { Price } from '@/components/Price'
 import { ProductImage } from '@/components/ProductImage'
 import { EmptyBlock, ErrorBlock, LoadingBlock } from '@/components/QueryState'
 import { StatusBadge } from '@/components/StatusBadge'
+import { Button } from '@/components/ui/button'
+import { useAddToCheckout } from '@/hooks/useCheckouts'
 import { ViewToggle } from '@/components/ViewToggle'
 import { gridColumnsClass, useGridColumns } from '@/hooks/useGridColumns'
 import { useMenu } from '@/hooks/useMenu'
@@ -50,7 +52,7 @@ export default function MenuPage() {
             <ul className={`grid gap-3 ${gridColumnsClass(columns)}`}>
               {items.map((product) => (
                 <li key={product.id}>
-                  <ProductCard product={product} />
+                  <ProductCard product={product} storeOpen={store.isOpen} />
                 </li>
               ))}
             </ul>
@@ -67,34 +69,45 @@ export default function MenuPage() {
   )
 }
 
-function ProductCard({ product }: { product: Product }) {
+function ProductCard({ product, storeOpen }: { product: Product; storeOpen: boolean }) {
+  const { add, isPending } = useAddToCheckout()
+
   return (
-    <Link
-      to={`/producto/${product.id}`}
-      className="flex h-full flex-col gap-2 rounded-lg border border-border bg-card p-2 transition-colors duration-150 hover:bg-accent"
-    >
-      <div className="relative">
-        <ProductImage
-          imageUrl={product.imageUrl}
-          category={product.category}
-          name={product.name}
-          dimmed={!product.isAvailable}
-        />
-        {!product.isAvailable && (
-          <StatusBadge tone="created" className="absolute top-2 left-2">
-            Agotado
-          </StatusBadge>
-        )}
-      </div>
-      <div className="flex flex-1 flex-col gap-1 px-1 pb-1">
-        <h3 className="font-sans text-base font-semibold">{product.name}</h3>
-        <p className="line-clamp-2 text-sm text-muted-foreground">{product.description}</p>
-        <Price
-          priceCents={product.priceCents}
-          priceBsCents={product.priceBsCents}
-          className="mt-auto pt-1"
-        />
-      </div>
-    </Link>
+    <div className="flex h-full flex-col gap-2 rounded-lg border border-border bg-card p-2">
+      <Link
+        to={`/producto/${product.id}`}
+        className="flex flex-1 flex-col gap-2 rounded-lg transition-colors duration-150 hover:bg-accent"
+      >
+        <div className="relative">
+          <ProductImage
+            imageUrl={product.imageUrl}
+            category={product.category}
+            name={product.name}
+            dimmed={!product.isAvailable}
+          />
+          {!product.isAvailable && (
+            <StatusBadge tone="created" className="absolute top-2 left-2">
+              Agotado
+            </StatusBadge>
+          )}
+        </div>
+        <div className="flex flex-1 flex-col gap-1 px-1">
+          <h3 className="font-sans text-base font-semibold">{product.name}</h3>
+          <p className="line-clamp-2 text-sm text-muted-foreground">{product.description}</p>
+          <Price
+            priceCents={product.priceCents}
+            priceBsCents={product.priceBsCents}
+            className="mt-auto pt-1"
+          />
+        </div>
+      </Link>
+      <Button
+        disabled={!product.isAvailable || !storeOpen || isPending}
+        onClick={() => add(product)}
+      >
+        <Plus strokeWidth={1.5} aria-hidden="true" />
+        Agregar
+      </Button>
+    </div>
   )
 }
