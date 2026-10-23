@@ -7,3 +7,299 @@ datasource db {
   url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
 }
+
+enum Category {
+  CAFE
+  BEBIDAS
+  POSTRES
+}
+
+enum OrderStatus {
+  CREATED          // en el checkout; solo lo ve el cliente
+  IN_VERIFICATION  // referencia enviada; espera al cajero
+  PAID             // verificado; en el inventario del cliente con su QR
+  IN_QUEUE         // escaneado en mostrador; en la cola del barista
+  DELIVERED        // el barista lo eliminó de la cola al entregarlo
+  EXPIRED          // checkout sin referencia en el plazo
+  CANCELLED        // checkout cancelado por el cliente
+}
+
+enum SubmissionStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum RejectReason {
+  REFERENCE_NOT_FOUND
+  WRONG_AMOUNT
+  OTHER
+}
+
+enum VerificationAction {
+  APPROVED
+  REJECTED
+}
+
+enum RewardType {
+  PERCENT_DISCOUNT
+  FREE_PRODUCT
+}
+
+enum CouponStatus {
+  AVAILABLE
+  RESERVED  // aplicado en un checkout no pagado
+  USED
+  EXPIRED
+}
+
+enum PointsMovementType {
+  EARN
+  REDEEM
+}
+
+model User {
+  id            String   @id @db.Uuid // = id de auth.users en Supabase
+  name          String
+  email         String   @unique
+  isAdmin       Boolean  @default(false)
+  canCashier    Boolean  @default(false)
+  canBarista    Boolean  @default(false)
+  canManager    Boolean  @default(false)
+  pointsBalance Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  orders              Order[]             @relation("OrderCustomer")
+  scannedOrders       Order[]             @relation("OrderScannedBy")
+  deliveredOrders     Order[]             @relation("OrderDeliveredBy")
+  restoredOrders      Order[]             @relation("OrderRestoredBy")
+  submissions         PaymentSubmission[] @relation("SubmissionCustomer")
+  reviewedSubmissions PaymentSubmission[] @relation("SubmissionReviewedBy")
+  verificationLogs    VerificationLog[]
+  coupons             Coupon[]
+  pointsMovements     PointsMovement[]
+}
+
+model Bank {
+  code        String              @id // "0102"
+  name        String              // "Banco de Venezuela"
+  submissions PaymentSubmission[]
+}
+
+model Product {
+  id          String   @id @default(uuid()) @db.Uuid
+  name        String
+  description String
+  priceCents  Int
+  imageUrl    String?
+  category    Category
+  isAvailable Boolean  @default(true) // false = AGOTADO
+  isActive    Boolean  @default(true) // false = dado de baja (nunca se borra)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  orderItems OrderItem[]
+  rewards    Reward[]
+  coupons    Coupon[]
+
+  @@index([category, isActive])
+}
+
+model Order {
+  id                String      @id @default(uuid()) @db.Uuid
+  customerId        String      @db.Uuid
+  customer          User        @relation("OrderCustomer", fields: [customerId], references: [id])
+  status            OrderStatus @default(CREATED)
+
+  everSubmitted     Boolean     @default(false) // true desde el primer envío de referencia
+  expiresAt         DateTime?   // solo tiene sentido en CREATED
+  rejectionStreak   Int         @default(0)
+  blockedUntil      DateTime?
+
+  // Instantánea tomada al enviar la referencia (precio congelado)
+  totalCents        Int?
+  amountBsCents     Int?
+  bcvRateHundredths Int?
+
+  paidAt            DateTime?
+  pointsEarned      Int?
+  pickupCode        String?     @unique // código corto alfanumérico (6)
+  qrToken           String?     @unique @db.Uuid // contenido del QR
+
+  scannedAt         DateTime?
+  scannedById       String?     @db.Uuid
+  scannedBy         User?       @relation("OrderScannedBy", fields: [scannedById], references: [id])
+  deliveredAt       DateTime?
+  deliveredById     String?     @db.Uuid
+  deliveredBy       User?       @relation("OrderDeliveredBy", fields: [deliveredById], references: [id])
+  restoredAt        DateTime?
+  restoredById      String?     @db.Uuid
+  restoredBy        User?       @relation("OrderRestoredBy", fields: [restoredById], references: [id])
+
+  cancelledAt       DateTime?
+  expiredAt         DateTime?
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+
+  items            OrderItem[]
+  submissions      PaymentSubmission[]
+  verificationLogs VerificationLog[]
+  pointsMovements  PointsMovement[]
+
+  @@index([customerId, status])
+  @@index([status, scannedAt])
+  @@index([status, expiresAt])
+  @@index([paidAt])
+}
+
+model OrderItem {
+  id             String   @id @default(uuid()) @db.Uuid
+  orderId        String   @db.Uuid
+  order          Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId      String   @db.Uuid
+  product        Product  @relation(fields: [productId], references: [id])
+  quantity       Int      // 1 si la línea lleva cupón
+  couponId       String?  @db.Uuid
+  coupon         Coupon?  @relation(fields: [couponId], references: [id])
+
+  // Se rellenan al enviar la referencia (congelados); null mientras está en CREATED
+  unitPriceCents Int?
+  discountCents  Int?
+  lineTotalCents Int?
+
+  createdAt      DateTime @default(now())
+
+  @@index([orderId])
+}
+
+model PaymentSubmission {
+  id            String           @id @default(uuid()) @db.Uuid
+  orderId       String           @db.Uuid
+  order         Order            @relation(fields: [orderId], references: [id])
+  customerId    String           @db.Uuid
+  customer      User             @relation("SubmissionCustomer", fields: [customerId], references: [id])
+  reference     String           // solo dígitos, 6 a 22
+  bankCode      String
+  bank          Bank             @relation(fields: [bankCode], references: [code])
+  amountBsCents Int
+  totalCents    Int
+  status        SubmissionStatus @default(PENDING)
+  rejectReason  RejectReason?
+  rejectNote    String?
+  reviewedById  String?          @db.Uuid
+  reviewedBy    User?            @relation("SubmissionReviewedBy", fields: [reviewedById], references: [id])
+  reviewedAt    DateTime?
+  submittedAt   DateTime         @default(now())
+
+  logs VerificationLog[]
+
+  @@index([status, submittedAt])
+  @@index([customerId, submittedAt])
+}
+
+// Registro INMUTABLE de cada verificación (solo INSERT)
+model VerificationLog {
+  id            String             @id @default(uuid()) @db.Uuid
+  submissionId  String             @db.Uuid
+  submission    PaymentSubmission  @relation(fields: [submissionId], references: [id])
+  orderId       String             @db.Uuid
+  order         Order              @relation(fields: [orderId], references: [id])
+  cashierId     String             @db.Uuid
+  cashier       User               @relation(fields: [cashierId], references: [id])
+  action        VerificationAction
+  reference     String
+  bankCode      String
+  amountBsCents Int
+  rejectReason  RejectReason?
+  rejectNote    String?
+  createdAt     DateTime           @default(now())
+
+  @@index([orderId])
+}
+
+model Reward {
+  id         String     @id @default(uuid()) @db.Uuid
+  name       String     // "Latte gratis", "50% en un producto"
+  type       RewardType
+  percent    Int?       // 1..100, solo PERCENT_DISCOUNT
+  productId  String?    @db.Uuid // solo FREE_PRODUCT
+  product    Product?   @relation(fields: [productId], references: [id])
+  costPoints Int
+  isActive   Boolean    @default(true)
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+
+  coupons Coupon[]
+}
+
+model Coupon {
+  id         String       @id @default(uuid()) @db.Uuid
+  userId     String       @db.Uuid
+  user       User         @relation(fields: [userId], references: [id])
+  rewardId   String       @db.Uuid
+  reward     Reward       @relation(fields: [rewardId], references: [id])
+  // Copia de la recompensa al momento del canje
+  title      String
+  type       RewardType
+  percent    Int?
+  productId  String?      @db.Uuid
+  product    Product?     @relation(fields: [productId], references: [id])
+  pointsCost Int
+  status     CouponStatus @default(AVAILABLE)
+  expiresAt  DateTime     // fin de mes en America/Caracas, guardado en UTC
+  redeemedAt DateTime     @default(now())
+  usedAt     DateTime?
+
+  orderItems      OrderItem[]
+  pointsMovements PointsMovement[]
+
+  @@index([userId, status])
+  @@index([status, expiresAt])
+}
+
+model PointsMovement {
+  id        String             @id @default(uuid()) @db.Uuid
+  userId    String             @db.Uuid
+  user      User               @relation(fields: [userId], references: [id])
+  type      PointsMovementType
+  points    Int                // positivo en EARN, negativo en REDEEM
+  orderId   String?            @db.Uuid
+  order     Order?             @relation(fields: [orderId], references: [id])
+  couponId  String?            @db.Uuid
+  coupon    Coupon?            @relation(fields: [couponId], references: [id])
+  createdAt DateTime           @default(now())
+
+  @@index([userId, createdAt])
+}
+
+model ExchangeRate {
+  id             String   @id @default(uuid()) @db.Uuid
+  rateHundredths Int      // 88623 = Bs 886,23 por dólar
+  bcvDate        DateTime @db.Date // fecha que informa la API
+  fetchedAt      DateTime @default(now())
+
+  @@index([fetchedAt])
+}
+
+// Fila única (id = 1) con TODOS los parámetros editables por el administrador
+model Settings {
+  id                            Int      @id @default(1)
+  pointsPerDollar               Int      @default(100)
+  checkoutExpirationHours       Int      @default(24)
+  maxPaidUnscannedOrders        Int      @default(10)
+  rejectionsBeforeBlock         Int      @default(3)
+  blockMinutes                  Int      @default(15)
+  referenceSubmissionsPerMinute Int      @default(5)
+  maxQuantityPerProduct         Int      @default(10)
+  // Datos de cobro de Pago Móvil
+  paymentDocType                String   @default("J") // V, E, J, G
+  paymentDocNumber              String   @default("")
+  paymentBankCode               String   @default("0134")
+  paymentPhone                  String   @default("") // 04XXXXXXXXX
+  // Horario (igual para todos los días abiertos)
+  openDays                      Int[]    @default([1, 2, 3, 4, 5, 6]) // 1 = lunes … 7 = domingo (ISO, como Luxon)
+  openTime                      String   @default("08:00")
+  closeTime                     String   @default("20:00")
+  updatedAt                     DateTime @updatedAt
+}

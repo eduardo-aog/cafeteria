@@ -1,18 +1,21 @@
 # Progreso del proyecto
 
 ## Estado actual
-- Fase: 1 — Base del repositorio
-- Rama: feat/fase-01-base
-- Paso: esperando ⛔ PARADA 1.Z — Cierre de la Fase 1
+- Fase: 2 — Esquema de datos
+- Rama: feat/fase-02-esquema
+- Paso: esperando ⛔ PARADA 2.Z — Cierre de la Fase 2
 
 ## Paradas confirmadas
 - 0.A Requisitos previos — 2026-10-23
 - 1.A Supabase y archivos .env — 2026-10-23 (incluye 1.E1: la VPN bloqueaba el puerto 5432; `DIRECT_URL` verificada por el usuario con `prisma db execute`)
+- 1.Z Cierre de la Fase 1 — 2026-10-23
+- 2.E1 Conexión por `DIRECT_URL` (VPN activa) — 2026-10-23
 
 ## Fases cerradas
-- (ninguna todavía)
+- Fase 1 — Base del repositorio (unida a main el 2026-10-23, PR #1)
 
 ## Decisiones menores tomadas
+- Fase 1: el repositorio de GitHub pasó a ser público (decisión del usuario, para facilitar el despliegue). Ningún `.env` ni clave está en el historial.
 - Fase 1: `@hookform/resolvers` fijado en la versión 5 (la 6.0.0 da conflicto de peer dependencies con npm).
 - Fase 1: shadcn (preset `nova`, base `radix`) usa el paquete `cn` (mantenido por shadcn-ui) en vez de `clsx` + `tailwind-merge`. Se conserva tal como lo genera la CLI.
 - Fase 1: `button.tsx`, `card.tsx` y `sonner.tsx` se ajustaron a 10.6 (alto mínimo 44 px, borde de 1 px sin anillo, radio de 10 px, sin `dark:` ni `next-themes`, transiciones de 150 ms).
@@ -21,6 +24,10 @@
 - Fase 1: contraste de bordes de campos: se mantiene `#E4DACB` para tarjetas y separadores y se usará un borde más oscuro (propuesto `#8F7E6D`, 3,5:1) solo en campos de formulario y botones outline (decisión del usuario, 2026-10-23; se implementa en la Fase 3).
 - Fase 1: con la VPN activa el puerto 5432 (`DIRECT_URL`) no responde. Las migraciones (Fase 2 en adelante) requieren desactivar la VPN o excluir `*.pooler.supabase.com` de su túnel. `DATABASE_URL` (6543) funciona con VPN.
 - Fase 1: `GET /api/health/db` usa Prisma (`$queryRaw`); el esquema de Prisma queda vacío (solo generator y datasource) hasta la Fase 2.
+- Fase 2: `prisma migrate dev` y `db execute` (puerto 5432) fallan desde la sesión del agente aunque la VPN esté apagada; el usuario los ejecuta con `! cd api && npx prisma …` (VPN apagada). El seed y el resto usan 6543 / HTTPS y los corre el agente.
+- Fase 2: `paymentDocNumber` del seed es `123456789` (tipo `J` aparte, se muestra `J-12345678-9`). El `upsert` de `Settings` no pisa valores ya editados.
+- Fase 2: se añadió `src/lib/supabase.ts` (cliente admin) y los scripts `db:migrate`, `db:deploy`, `db:seed` y `db:studio`. `db:seed:sales` y `db:reset-demo` llegan en las fases 9 y 10.
+- Fase 2: el bloque de RLS también cubre `_prisma_migrations` (tabla de Prisma). Toda migración futura que cree tablas debe repetir el bloque (7.2a).
 
 ## Contraste de la paleta (10.6, mínimo AA)
 | Pareja | Ratio |
