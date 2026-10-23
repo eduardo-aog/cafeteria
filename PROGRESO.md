@@ -1,9 +1,9 @@
 # Progreso del proyecto
 
 ## Estado actual
-- Fase: 3 — cerrada. Siguiente: Fase 4 — Dominio, tasa BCV, catálogo y menú (no iniciada)
-- Rama: main
-- Paso: esperando instrucción del usuario para iniciar la Fase 4
+- Fase: 4 — Dominio, tasa BCV, catálogo y menú
+- Rama: feat/fase-04-catalogo
+- Paso: esperando ⛔ PARADA 4.Z — Cierre de la Fase 4
 
 ## Paradas confirmadas
 - 0.A Requisitos previos — 2026-10-23
@@ -40,6 +40,18 @@
 - Fase 3: las pantallas de cliente (menú, checkout, pedidos, puntos) y las secciones de `/trabajo` son marcadores de posición (`PagePlaceholder`) hasta sus fases. `/cuenta` y el cierre de sesión ya funcionan.
 - Fase 3: se eliminó `ThemePreview` (página de prueba de la Fase 1); `/` ahora redirige según la cuenta.
 - Fase 3: el puerto 5173 estaba ocupado por un Vite anterior (proceso ajeno a esta sesión); las comprobaciones del agente usaron el 5174.
+- Fase 4: `curl` a `BCV_API_URL` respondió 200 en 1,4 s con el formato esperado (USD, `price` con decimales y `date`), así que no hubo parada. Reintentos: 3 tras el primer intento (4 en total), con 60 s de timeout y 1 min entre intentos.
+- Fase 4: la comprobación al arrancar sigue la letra de 8.4: consulta si no hay tasa o la última (`fetchedAt`) es anterior a las 8:00 a. m. de hoy en Caracas. Antes de las 8:00 siempre consulta (inofensivo). Las consultas simultáneas se unifican (una sola en vuelo).
+- Fase 4: la API del BCV informa la fecha del día hábil siguiente (hoy 23/10 devolvió 27/10); `bcvDate` guarda ese valor y el menú lo muestra tal cual.
+- Fase 4: el seed añade la tasa de respaldo (Bs 886,23) solo si no hay ninguna, con `fetchedAt` en el año 2000 para que el arranque consulte el BCV y cualquier tasa real la reemplace. En esta base ya existe una tasa real, así que no se insertó.
+- Fase 4: el catálogo de 15 trae 14 productos (6 + 4 + 4, como lista la tabla). El seed solo crea los que no existen por nombre y no pisa ediciones.
+- Fase 4: `GET /menu` añade `store.nextOpening` (ISO o null) para mostrar «Cerrado · Abrimos …»; `GET /products/:id` devuelve `{ product, rate }`. Ambos incluyen `priceBsCents` calculado en el servidor (null si no hay tasa).
+- Fase 4: las imágenes se guardan como `<productId>/<uuid>.<ext>` (nombre nuevo en cada subida, para no servir una versión en caché) y el servidor valida los primeros bytes (JPG, PNG, WebP) además del tipo declarado. La imagen anterior se borra del bucket al reemplazar o quitar. Los CDN pueden seguir sirviendo unos minutos una URL que ya se había pedido.
+- Fase 4: `daysUntil` cuenta días naturales en Caracas (0 el último día); el aviso fuerte de 8.9 («menos de 5 días») se aplicará en la Fase 8.
+- Fase 4: el catálogo del gerente usa tres rutas: `/trabajo/catalogo` (lista), `/trabajo/catalogo/nuevo` y `/trabajo/catalogo/:id` (edición, imagen y, solo con administrador, baja o reactivación). Al crear un producto se pasa a la edición para subir la imagen (9.6 crea sin imagen).
+- Fase 4: el precio se escribe en dólares (`4`, `4,5`, `4.50`, `1.250,50`) y la web lo convierte a centavos antes de enviarlo; el servidor valida de 1 centavo a $10.000,00.
+- Fase 4: se añadió `ConfirmDialog` (AlertDialog de Radix) para acciones irreversibles, `NativeSelect` y `Textarea`. Las pruebas de `web/` arrancan con `format.test.ts`.
+- Fase 4: las pruebas de la API real contra Supabase (menú, permisos, CRUD, imágenes, baja) se hicieron con un script temporal no versionado. El «Cerrado · Abrimos …» solo se ve con el local cerrado (fuera de 8:00–20:00 o domingo); está cubierto por pruebas unitarias.
 
 ## Contraste de la paleta (10.6, mínimo AA)
 | Pareja | Ratio |

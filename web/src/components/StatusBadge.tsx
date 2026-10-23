@@ -11,12 +11,21 @@ const STYLES = {
 export type BadgeTone = keyof typeof STYLES
 
 // Píldora con texto: el estado nunca se comunica solo con color.
-export function StatusBadge({ tone, children }: { tone: BadgeTone; children: React.ReactNode }) {
+export function StatusBadge({
+  tone,
+  children,
+  className,
+}: {
+  tone: BadgeTone
+  children: React.ReactNode
+  className?: string
+}) {
   return (
     <span
       className={cn(
         'inline-flex items-center rounded-full px-3 py-1 text-sm font-medium',
         STYLES[tone],
+        className,
       )}
     >
       {children}

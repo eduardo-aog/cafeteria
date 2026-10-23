@@ -30,15 +30,17 @@ export async function api<T>(path: string, { method = 'GET', body }: ApiOptions 
   const { data } = await supabase.auth.getSession()
   const token = data.session?.access_token
 
+  const isForm = body instanceof FormData
   let response: Response
   try {
     response = await fetch(`${API_URL}${path}`, {
       method,
       headers: {
-        ...(body !== undefined ? { 'Content-Type': 'application/json' } : {}),
+        // Con FormData el navegador pone el Content-Type (con el boundary).
+        ...(body !== undefined && !isForm ? { 'Content-Type': 'application/json' } : {}),
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
-      body: body !== undefined ? JSON.stringify(body) : undefined,
+      body: body === undefined ? undefined : isForm ? body : JSON.stringify(body),
     })
   } catch {
     throw new ApiError('NETWORK_ERROR', 'No se pudo conectar con el servidor.', 0)
