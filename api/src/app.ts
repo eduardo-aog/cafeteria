@@ -5,6 +5,9 @@ import { env } from './config/env.js'
 import { healthRouter } from './routes/health.js'
 import { authRouter } from './routes/auth.js'
 import { meRouter } from './routes/me.js'
+import { menuRouter } from './routes/menu.js'
+import { managerRouter } from './routes/manager.js'
+import { adminRouter } from './routes/admin.js'
 import { errorHandler, notFound } from './middleware/error.js'
 
 export const app = express()
@@ -16,6 +19,9 @@ app.use(express.json({ limit: '100kb' }))
 app.use('/api', healthRouter)
 app.use('/api', authRouter)
 app.use('/api', meRouter)
+app.use('/api', menuRouter)
+app.use('/api', managerRouter)
+app.use('/api', adminRouter)
 
 app.use(notFound)
 app.use(errorHandler)

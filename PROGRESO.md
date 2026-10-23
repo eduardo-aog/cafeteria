@@ -1,9 +1,9 @@
 # Progreso del proyecto
 
 ## Estado actual
-- Fase: 3 — Autenticación y permisos
-- Rama: feat/fase-03-auth
-- Paso: esperando ⛔ PARADA 3.Z — Cierre de la Fase 3
+- Fase: 4 — Dominio, tasa BCV, catálogo y menú
+- Rama: feat/fase-04-catalogo
+- Paso: esperando ⛔ PARADA 4.Z — Cierre de la Fase 4
 
 ## Paradas confirmadas
 - 0.A Requisitos previos — 2026-10-23
@@ -11,10 +11,12 @@
 - 1.Z Cierre de la Fase 1 — 2026-10-23
 - 2.E1 Conexión por `DIRECT_URL` (VPN activa) — 2026-10-23
 - 2.Z Cierre de la Fase 2 — 2026-10-23
+- 3.Z Cierre de la Fase 3 — 2026-10-23
 
 ## Fases cerradas
 - Fase 1 — Base del repositorio (unida a main el 2026-10-23, PR #1)
 - Fase 2 — Esquema de datos (unida a main el 2026-10-23, PR #2)
+- Fase 3 — Autenticación y permisos (unida a main el 2026-10-23, PR #3)
 
 ## Decisiones menores tomadas
 - Fase 1: el repositorio de GitHub pasó a ser público (decisión del usuario, para facilitar el despliegue). Ningún `.env` ni clave está en el historial.
@@ -38,6 +40,20 @@
 - Fase 3: las pantallas de cliente (menú, checkout, pedidos, puntos) y las secciones de `/trabajo` son marcadores de posición (`PagePlaceholder`) hasta sus fases. `/cuenta` y el cierre de sesión ya funcionan.
 - Fase 3: se eliminó `ThemePreview` (página de prueba de la Fase 1); `/` ahora redirige según la cuenta.
 - Fase 3: el puerto 5173 estaba ocupado por un Vite anterior (proceso ajeno a esta sesión); las comprobaciones del agente usaron el 5174.
+- Fase 4: `curl` a `BCV_API_URL` respondió 200 en 1,4 s con el formato esperado (USD, `price` con decimales y `date`), así que no hubo parada. Reintentos: 3 tras el primer intento (4 en total), con 60 s de timeout y 1 min entre intentos.
+- Fase 4: la comprobación al arrancar sigue la letra de 8.4: consulta si no hay tasa o la última (`fetchedAt`) es anterior a las 8:00 a. m. de hoy en Caracas. Antes de las 8:00 siempre consulta (inofensivo). Las consultas simultáneas se unifican (una sola en vuelo).
+- Fase 4: la API del BCV informa la fecha del día hábil siguiente (hoy 23/10 devolvió 27/10); `bcvDate` guarda ese valor y el menú lo muestra tal cual.
+- Fase 4: el seed añade la tasa de respaldo (Bs 886,23) solo si no hay ninguna, con `fetchedAt` en el año 2000 para que el arranque consulte el BCV y cualquier tasa real la reemplace. En esta base ya existe una tasa real, así que no se insertó.
+- Fase 4: el catálogo de 15 trae 14 productos (6 + 4 + 4, como lista la tabla). El seed solo crea los que no existen por nombre y no pisa ediciones.
+- Fase 4: `GET /menu` añade `store.nextOpening` (ISO o null) para mostrar «Cerrado · Abrimos …»; `GET /products/:id` devuelve `{ product, rate }`. Ambos incluyen `priceBsCents` calculado en el servidor (null si no hay tasa).
+- Fase 4: las imágenes se guardan como `<productId>/<uuid>.<ext>` (nombre nuevo en cada subida, para no servir una versión en caché) y el servidor valida los primeros bytes (JPG, PNG, WebP) además del tipo declarado. La imagen anterior se borra del bucket al reemplazar o quitar. Los CDN pueden seguir sirviendo unos minutos una URL que ya se había pedido.
+- Fase 4: `daysUntil` cuenta días naturales en Caracas (0 el último día); el aviso fuerte de 8.9 («menos de 5 días») se aplicará en la Fase 8.
+- Fase 4: el catálogo del gerente usa tres rutas: `/trabajo/catalogo` (lista), `/trabajo/catalogo/nuevo` y `/trabajo/catalogo/:id` (edición, imagen y, solo con administrador, baja o reactivación). Al crear un producto se pasa a la edición para subir la imagen (9.6 crea sin imagen).
+- Fase 4: el precio se escribe en dólares (`4`, `4,5`, `4.50`, `1.250,50`) y la web lo convierte a centavos antes de enviarlo; el servidor valida de 1 centavo a $10.000,00.
+- Fase 4: se añadió `ConfirmDialog` (AlertDialog de Radix) para acciones irreversibles, `NativeSelect` y `Textarea`. Las pruebas de `web/` arrancan con `format.test.ts`.
+- Fase 4: las pruebas de la API real contra Supabase (menú, permisos, CRUD, imágenes, baja) se hicieron con un script temporal no versionado. El «Cerrado · Abrimos …» solo se ve con el local cerrado (fuera de 8:00–20:00 o domingo); está cubierto por pruebas unitarias.
+- Fase 4 (ajustes pedidos por el usuario tras probar): (1) el catálogo del gerente y del administrador tiene un filtro «Todo / Agotados / De baja» (Agotados incluye también los dados de baja que estén agotados); (2) todas las vistas de catálogo (menú del cliente y catálogo de trabajo) tienen un selector de una o dos columnas, por defecto dos, que se guarda en `localStorage` y se comparte entre ambas vistas; el catálogo de trabajo pasó a tarjetas con el contenido hacia abajo (imagen, nombre, $, Bs, y los botones «Editar» y «Marcar agotado» uno debajo del otro); (3) el panel de trabajo muestra sus secciones en un menú hamburguesa desplegable a la izquierda (con «Inicio» y «Cerrar sesión») y el inicio `/trabajo` solo da la bienvenida. Esto sustituye a las tarjetas apiladas del inicio que describe 10.4. El panel se abre sin animación de deslizamiento, por la regla de movimiento de 10.6.
+- Fase 4: verificación de los ajustes en Firefox real (automatizado con Marionette, sin versionar): login como gerente y cliente, menú hamburguesa, filtros (incluido marcar y revertir un producto agotado), cambio de columnas y persistencia de la preferencia.
 
 ## Contraste de la paleta (10.6, mínimo AA)
 | Pareja | Ratio |

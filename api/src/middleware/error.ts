@@ -1,4 +1,5 @@
 import type { ErrorRequestHandler, RequestHandler } from 'express'
+import { MulterError } from 'multer'
 import { ZodError } from 'zod'
 
 export class AppError extends Error {
@@ -26,6 +27,16 @@ export const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
         code: 'VALIDATION_ERROR',
         message: 'Los datos enviados no son válidos.',
         details: err.issues.map((i) => ({ path: i.path.join('.'), message: i.message })),
+      },
+    })
+    return
+  }
+  if (err instanceof MulterError) {
+    const tooLarge = err.code === 'LIMIT_FILE_SIZE'
+    res.status(400).json({
+      error: {
+        code: tooLarge ? 'IMAGE_TOO_LARGE' : 'INVALID_IMAGE',
+        message: tooLarge ? 'La imagen no puede pesar más de 2 MB.' : 'No se pudo leer la imagen.',
       },
     })
     return

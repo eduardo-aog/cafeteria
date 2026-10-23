@@ -31,7 +31,95 @@ const BANKS = [
   ['0191', 'BNC Banco Nacional de Crédito'],
 ] as const
 
-// Cuentas de demostración (15): todas con la contraseña SEED_DEMO_PASSWORD.
+// Catálogo de demostración (sección 15), sin imágenes: la web usa las genéricas por categoría.
+const PRODUCTS = [
+  {
+    category: 'CAFE',
+    name: 'Espresso',
+    priceCents: 200,
+    description: 'Café corto e intenso, servido solo.',
+  },
+  {
+    category: 'CAFE',
+    name: 'Americano',
+    priceCents: 250,
+    description: 'Espresso alargado con agua caliente.',
+  },
+  {
+    category: 'CAFE',
+    name: 'Capuchino',
+    priceCents: 350,
+    description: 'Espresso con leche vaporizada y espuma cremosa.',
+  },
+  {
+    category: 'CAFE',
+    name: 'Latte',
+    priceCents: 400,
+    description: 'Espresso con abundante leche vaporizada y una capa fina de espuma.',
+  },
+  {
+    category: 'CAFE',
+    name: 'Moca',
+    priceCents: 450,
+    description: 'Espresso con chocolate y leche vaporizada.',
+  },
+  {
+    category: 'CAFE',
+    name: 'Macchiato',
+    priceCents: 375,
+    description: 'Espresso manchado con un toque de espuma de leche.',
+  },
+  {
+    category: 'BEBIDAS',
+    name: 'Chocolate caliente',
+    priceCents: 350,
+    description: 'Chocolate espeso preparado con leche.',
+  },
+  {
+    category: 'BEBIDAS',
+    name: 'Té chai',
+    priceCents: 325,
+    description: 'Té negro especiado con leche vaporizada.',
+  },
+  {
+    category: 'BEBIDAS',
+    name: 'Frappé de vainilla',
+    priceCents: 475,
+    description: 'Bebida fría y cremosa de vainilla con hielo.',
+  },
+  {
+    category: 'BEBIDAS',
+    name: 'Limonada',
+    priceCents: 275,
+    description: 'Limón natural, hielo y un toque de azúcar.',
+  },
+  {
+    category: 'POSTRES',
+    name: 'Brownie',
+    priceCents: 300,
+    description: 'Bizcocho húmedo de chocolate con nueces.',
+  },
+  {
+    category: 'POSTRES',
+    name: 'Cheesecake',
+    priceCents: 425,
+    description: 'Porción de tarta de queso con base de galleta.',
+  },
+  {
+    category: 'POSTRES',
+    name: 'Croissant',
+    priceCents: 250,
+    description: 'Hojaldre de mantequilla horneado cada mañana.',
+  },
+  {
+    category: 'POSTRES',
+    name: 'Galleta de avena',
+    priceCents: 175,
+    description: 'Galleta casera de avena y pasas.',
+  },
+] as const
+
+// Cuentas de demostración (sección 15): todas con la contraseña SEED_DEMO_PASSWORD.
 const DEMO_USERS = [
   { email: 'cajero@demo.com', name: 'Cajero Demo', canCashier: true, pointsBalance: 0 },
   { email: 'barista@demo.com', name: 'Barista Demo', canBarista: true, pointsBalance: 0 },
@@ -82,6 +170,28 @@ async function main() {
     await prisma.bank.upsert({ where: { code }, update: { name }, create: { code, name } })
   }
 
+  // Solo se crea si el producto no existe: no pisa lo que el gerente haya editado.
+  for (const product of PRODUCTS) {
+    const exists = await prisma.product.findFirst({
+      where: { name: product.name },
+      select: { id: true },
+    })
+    if (!exists) await prisma.product.create({ data: product })
+  }
+
+  // Tasa de respaldo (Bs 886,23) solo si nunca se ha guardado ninguna. Se marca como antigua
+  // (fetchedAt) para que el arranque consulte el BCV y cualquier tasa real la reemplace.
+  if ((await prisma.exchangeRate.count()) === 0) {
+    const today = new Date().toISOString().slice(0, 10)
+    await prisma.exchangeRate.create({
+      data: {
+        rateHundredths: 88623,
+        bcvDate: new Date(`${today}T00:00:00Z`),
+        fetchedAt: new Date('2000-01-01T00:00:00Z'),
+      },
+    })
+  }
+
   const adminId = await ensureAuthUser(seed.SEED_ADMIN_EMAIL, seed.SEED_ADMIN_PASSWORD)
   await prisma.user.upsert({
     where: { id: adminId },
@@ -106,7 +216,7 @@ async function main() {
   }
 
   console.log(
-    `Seed listo: Settings, ${BANKS.length} bancos, administrador y ${DEMO_USERS.length} cuentas de demostración.`,
+    `Seed listo: Settings, ${BANKS.length} bancos, ${PRODUCTS.length} productos, administrador y ${DEMO_USERS.length} cuentas de demostración.`,
   )
 }
 

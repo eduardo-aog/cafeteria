@@ -1,32 +1,126 @@
-import { Link, Outlet, useLocation } from 'react-router-dom'
-import { ArrowLeft } from 'lucide-react'
+import { useState } from 'react'
+import { Link, NavLink, Outlet } from 'react-router-dom'
+import { Dialog } from 'radix-ui'
+import { House, LogOut, Menu, X, type LucideIcon } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import { APP_NAME } from '@/config'
+import { useAuth } from '@/hooks/useAuth'
 import { useMe } from '@/hooks/useMe'
+import { usePermissions } from '@/hooks/usePermissions'
+import { cn } from '@/lib/utils'
+import { STAFF_SECTIONS } from '@/pages/staff/sections'
 
 export default function WorkLayout() {
-  const { data: me } = useMe()
-  const { pathname } = useLocation()
-  const inHome = pathname === '/trabajo'
-
   return (
-    <div className="mx-auto flex min-h-svh max-w-120 flex-col gap-6 px-4 py-4">
-      <header className="flex items-center justify-between gap-4">
-        <p className="font-heading text-xl font-semibold">{APP_NAME}</p>
-        {inHome ? (
-          <p className="truncate text-sm text-muted-foreground">{me?.name}</p>
-        ) : (
-          <Link
-            to="/trabajo"
-            className="inline-flex min-h-11 items-center gap-1 text-sm font-medium text-primary"
-          >
-            <ArrowLeft className="size-5" strokeWidth={1.5} aria-hidden="true" />
-            Inicio
-          </Link>
-        )}
+    <div className="mx-auto flex min-h-svh max-w-120 flex-col">
+      <header className="sticky top-0 z-40 flex items-center gap-2 bg-background px-4 py-2">
+        <WorkMenu />
+        <Link to="/trabajo" className="font-heading text-xl font-semibold">
+          {APP_NAME}
+        </Link>
       </header>
-      <main className="flex-1">
+      <main className="flex-1 px-4 pt-4 pb-8">
         <Outlet />
       </main>
     </div>
+  )
+}
+
+// Menú hamburguesa: panel desplegable a la izquierda con las secciones según los permisos.
+function WorkMenu() {
+  const [open, setOpen] = useState(false)
+  const { data: me } = useMe()
+  const { hasAny } = usePermissions()
+  const { signOut } = useAuth()
+  const sections = STAFF_SECTIONS.filter((section) => hasAny(section.perms))
+
+  return (
+    <Dialog.Root open={open} onOpenChange={setOpen}>
+      <Dialog.Trigger asChild>
+        <Button variant="ghost" size="icon" aria-label="Abrir menú de trabajo">
+          <Menu strokeWidth={1.5} aria-hidden="true" />
+        </Button>
+      </Dialog.Trigger>
+      <Dialog.Portal>
+        <Dialog.Overlay className="fixed inset-0 z-50 bg-foreground/40" />
+        <Dialog.Content
+          aria-describedby={undefined}
+          className="fixed inset-y-0 left-0 z-50 flex w-72 max-w-[85vw] flex-col gap-4 border-r border-border bg-card p-4 outline-none"
+        >
+          <div className="flex items-start justify-between gap-2">
+            <div className="min-w-0">
+              <Dialog.Title className="font-heading text-lg font-medium">
+                Panel de trabajo
+              </Dialog.Title>
+              <p className="truncate text-sm text-muted-foreground">{me?.name}</p>
+            </div>
+            <Dialog.Close asChild>
+              <Button variant="ghost" size="icon" aria-label="Cerrar menú">
+                <X strokeWidth={1.5} aria-hidden="true" />
+              </Button>
+            </Dialog.Close>
+          </div>
+
+          <nav aria-label="Secciones de trabajo" className="-mx-2 flex-1 overflow-y-auto">
+            <ul className="flex flex-col gap-1">
+              <MenuLink
+                to="/trabajo"
+                label="Inicio"
+                icon={House}
+                end
+                onNavigate={() => setOpen(false)}
+              />
+              {sections.map(({ path, label, icon }) => (
+                <MenuLink
+                  key={path}
+                  to={`/trabajo/${path}`}
+                  label={label}
+                  icon={icon}
+                  onNavigate={() => setOpen(false)}
+                />
+              ))}
+            </ul>
+          </nav>
+
+          <Button variant="secondary" onClick={() => void signOut()}>
+            <LogOut strokeWidth={1.5} aria-hidden="true" />
+            Cerrar sesión
+          </Button>
+        </Dialog.Content>
+      </Dialog.Portal>
+    </Dialog.Root>
+  )
+}
+
+function MenuLink({
+  to,
+  label,
+  icon: Icon,
+  end,
+  onNavigate,
+}: {
+  to: string
+  label: string
+  icon: LucideIcon
+  end?: boolean
+  onNavigate: () => void
+}) {
+  return (
+    <li>
+      <NavLink
+        to={to}
+        end={end}
+        onClick={onNavigate}
+        className={({ isActive }) =>
+          cn(
+            'flex min-h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium transition-colors duration-150',
+            isActive ? 'bg-secondary text-secondary-foreground' : 'text-foreground hover:bg-accent',
+          )
+        }
+      >
+        <Icon className="size-5 text-primary" strokeWidth={1.5} aria-hidden="true" />
+        {label}
+      </NavLink>
+    </li>
   )
 }
