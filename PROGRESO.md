@@ -1,18 +1,20 @@
 # Progreso del proyecto
 
 ## Estado actual
-- Fase: 2 — Esquema de datos
-- Rama: feat/fase-02-esquema
-- Paso: esperando ⛔ PARADA 2.Z — Cierre de la Fase 2
+- Fase: 2 — cerrada. Siguiente: Fase 3 — Autenticación y permisos (no iniciada)
+- Rama: main
+- Paso: esperando instrucción del usuario para iniciar la Fase 3
 
 ## Paradas confirmadas
 - 0.A Requisitos previos — 2026-10-23
 - 1.A Supabase y archivos .env — 2026-10-23 (incluye 1.E1: la VPN bloqueaba el puerto 5432; `DIRECT_URL` verificada por el usuario con `prisma db execute`)
 - 1.Z Cierre de la Fase 1 — 2026-10-23
 - 2.E1 Conexión por `DIRECT_URL` (VPN activa) — 2026-10-23
+- 2.Z Cierre de la Fase 2 — 2026-10-23
 
 ## Fases cerradas
 - Fase 1 — Base del repositorio (unida a main el 2026-10-23, PR #1)
+- Fase 2 — Esquema de datos (unida a main el 2026-10-23, PR #2)
 
 ## Decisiones menores tomadas
 - Fase 1: el repositorio de GitHub pasó a ser público (decisión del usuario, para facilitar el despliegue). Ningún `.env` ni clave está en el historial.
