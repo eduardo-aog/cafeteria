@@ -3,7 +3,7 @@
 ## Estado actual
 - Fase: 1 — Base del repositorio
 - Rama: feat/fase-01-base
-- Paso: `api/` y `web/` creados (typecheck, lint y build OK). Siguiente: ⛔ PARADA 1.A — Supabase y archivos .env
+- Paso: esperando ⛔ PARADA 1.A — Supabase y archivos .env
 
 ## Paradas confirmadas
 - 0.A Requisitos previos — 2026-10-23
