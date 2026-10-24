@@ -2,8 +2,8 @@
 
 ## Estado actual
 - Fase: 6 — Pago y verificación
-- Rama: feat/fase-06-pago
-- Paso: trabajo técnico de la Fase 6 terminado; el usuario decidió desplegar antes de probar: esperando ⛔ PARADA 10.0 (adelantada) — Unir la rama antes de desplegar. Después 10.A, 10.B y 10.C, y entonces el cierre ⛔ PARADA 6.Z sobre el sitio publicado
+- Rama: main (la rama feat/fase-06-pago ya está unida, PR #6)
+- Paso: esperando ⛔ PARADA 10.A — Servidor en Render (adelantada). Falta el cierre ⛔ PARADA 6.Z, que se hará sobre el sitio publicado
 
 ## Paradas confirmadas
 - 0.A Requisitos previos — 2026-10-23
@@ -14,6 +14,8 @@
 - 3.Z Cierre de la Fase 3 — 2026-10-23
 - 4.Z Cierre de la Fase 4 — 2026-10-23
 - 5.Z Cierre de la Fase 5 — 2026-10-23
+- 6.A Preparar el teléfono — omitida por decisión del usuario (se prueba en el sitio publicado)
+- 10.0 Unir la rama antes de desplegar (adelantada) — 2026-10-23, PR #6
 
 ## Fases cerradas
 - Fase 1 — Base del repositorio (unida a main el 2026-10-23, PR #1)
