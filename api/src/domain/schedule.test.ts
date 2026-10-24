@@ -1,6 +1,6 @@
 import { DateTime } from 'luxon'
 import { describe, expect, it } from 'vitest'
-import { isStoreOpen, nextOpening } from './schedule.js'
+import { describeSchedule, isStoreOpen, nextOpening } from './schedule.js'
 
 const settings = { openDays: [1, 2, 3, 4, 5, 6], openTime: '08:00', closeTime: '20:00' }
 // Hora de Caracas (UTC-4) → Date.
@@ -48,5 +48,37 @@ describe('nextOpening', () => {
 
   it('sin días abiertos devuelve null', () => {
     expect(nextOpening(caracas('2026-10-26T06:00'), { ...settings, openDays: [] })).toBeNull()
+  })
+})
+
+describe('describeSchedule', () => {
+  it('lunes a sábado de 8:00 a. m. a 8:00 p. m.', () => {
+    expect(describeSchedule(settings)).toBe('lunes a sábado de 8:00 a. m. a 8:00 p. m.')
+  })
+
+  it('todos los días', () => {
+    const all = {
+      ...settings,
+      openDays: [1, 2, 3, 4, 5, 6, 7],
+      openTime: '00:00',
+      closeTime: '23:59',
+    }
+    expect(describeSchedule(all)).toBe('todos los días de 12:00 a. m. a 11:59 p. m.')
+  })
+
+  it('días sueltos y tramos cortos', () => {
+    expect(describeSchedule({ ...settings, openDays: [1, 3, 5] })).toBe(
+      'lunes, miércoles y viernes de 8:00 a. m. a 8:00 p. m.',
+    )
+    expect(describeSchedule({ ...settings, openDays: [6, 7] })).toBe(
+      'sábado y domingo de 8:00 a. m. a 8:00 p. m.',
+    )
+    expect(describeSchedule({ ...settings, openDays: [1, 2, 3, 5, 6] })).toBe(
+      'lunes a miércoles, viernes y sábado de 8:00 a. m. a 8:00 p. m.',
+    )
+  })
+
+  it('sin días abiertos', () => {
+    expect(describeSchedule({ ...settings, openDays: [] })).toBe('sin días de atención')
   })
 })

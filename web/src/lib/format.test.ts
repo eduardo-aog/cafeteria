@@ -5,6 +5,7 @@ import {
   formatClock,
   formatDate,
   formatDecimal,
+  formatRemaining,
   formatShortDate,
   formatTime,
   formatUsd,
@@ -84,5 +85,23 @@ describe('describeOpening', () => {
     expect(describeOpening(opening, new Date('2026-10-24T22:00:00Z'))).toBe(
       'el lunes a las 8:00 a. m.',
     )
+  })
+})
+
+describe('formatRemaining', () => {
+  const now = new Date('2026-10-23T15:00:00Z')
+
+  it('horas y minutos', () => {
+    expect(formatRemaining('2026-10-24T14:59:00Z', now)).toBe('23 h 59 min')
+    expect(formatRemaining('2026-10-23T17:00:00Z', now)).toBe('2 h')
+  })
+
+  it('menos de una hora', () => {
+    expect(formatRemaining('2026-10-23T15:45:00Z', now)).toBe('45 min')
+  })
+
+  it('redondea hacia arriba y no muestra negativos', () => {
+    expect(formatRemaining('2026-10-23T15:00:10Z', now)).toBe('1 min')
+    expect(formatRemaining('2026-10-23T14:59:00Z', now)).toBe('unos segundos')
   })
 })

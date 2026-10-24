@@ -54,7 +54,7 @@ function MeError() {
       <h1 className="text-2xl">No pudimos cargar tu cuenta</h1>
       <p className="text-muted-foreground">{me.error?.message ?? 'Ocurrió un error inesperado.'}</p>
       <Button onClick={() => void me.refetch()}>Reintentar</Button>
-      <Button variant="secondary" onClick={() => void signOut()}>
+      <Button variant="destructive" onClick={() => void signOut()}>
         Cerrar sesión
       </Button>
     </div>

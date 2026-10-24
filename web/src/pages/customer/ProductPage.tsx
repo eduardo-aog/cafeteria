@@ -1,16 +1,26 @@
+import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, Clock, LoaderCircle } from 'lucide-react'
 import { Price } from '@/components/Price'
 import { ProductImage } from '@/components/ProductImage'
 import { ErrorBlock, LoadingBlock } from '@/components/QueryState'
+import { QuantityStepper } from '@/components/QuantityStepper'
 import { StatusBadge } from '@/components/StatusBadge'
-import { useProduct } from '@/hooks/useMenu'
+import { Button } from '@/components/ui/button'
+import { useAddToCheckout } from '@/hooks/useCheckouts'
+import { useMenu, useProduct } from '@/hooks/useMenu'
+import { describeOpening } from '@/lib/format'
 import { ApiError } from '@/lib/api'
 import { CATEGORY_LABELS } from '@/lib/types'
 
 export default function ProductPage() {
   const { id } = useParams()
   const query = useProduct(id)
+  const menu = useMenu()
+  const { add, isPending } = useAddToCheckout()
+  const [quantity, setQuantity] = useState(1)
+  const store = menu.data?.store
+  const maxQuantity = menu.data?.limits.maxQuantityPerProduct ?? 10
 
   return (
     <div className="flex flex-col gap-4">
@@ -56,6 +66,30 @@ export default function ProductPage() {
               priceBsCents={query.data.product.priceBsCents}
               className="pt-1"
             />
+          </div>
+
+          {store && !store.isOpen && (
+            <div className="flex items-start gap-2 rounded-lg bg-secondary p-3 text-sm text-secondary-foreground">
+              <Clock className="mt-0.5 size-5 shrink-0" strokeWidth={1.5} aria-hidden="true" />
+              <p>
+                Cerrado
+                {store.nextOpening && ` · Abrimos ${describeOpening(store.nextOpening)}`}
+              </p>
+            </div>
+          )}
+
+          <div className="flex items-center justify-between gap-3">
+            <QuantityStepper value={quantity} max={maxQuantity} onChange={setQuantity} />
+            <Button
+              className="flex-1"
+              disabled={!query.data.product.isAvailable || !store?.isOpen || isPending}
+              onClick={() => add(query.data.product, quantity)}
+            >
+              {isPending && (
+                <LoaderCircle className="animate-spin" strokeWidth={1.5} aria-hidden="true" />
+              )}
+              {isPending ? 'Agregando…' : 'Agregar al checkout'}
+            </Button>
           </div>
         </article>
       )}

@@ -5,6 +5,8 @@ import type { Category, Product } from '@/lib/types'
 
 const KEY = ['manager', 'products']
 
+type ProductsCache = { products: Product[] } | undefined
+
 export function useManagerProducts() {
   return useQuery({
     queryKey: KEY,
@@ -19,24 +21,62 @@ export interface ProductInput {
   category: Category
 }
 
-// Tras cada cambio se refrescan la lista del gerente y el menú del cliente.
-export function useProductMutation<TVars>(request: (vars: TVars) => Promise<{ product: Product }>) {
+type ProductResponse = { product: Product }
+
+interface ProductMutationOptions<TVars> {
+  // Cambio inmediato en la lista, solo para banderas sin montos (agotado, baja).
+  optimistic?: (product: Product, vars: TVars) => Product
+  // Cambios que pueden alterar el orden de la lista (nombre, categoría) o que crean productos: se vuelve a pedir.
+  refetch?: boolean
+}
+
+// El servidor devuelve el producto ya guardado: se escribe en la lista y no hace falta volver a pedirla.
+export function useProductMutation<TVars extends { id?: string }>(
+  request: (vars: TVars) => Promise<ProductResponse>,
+  { optimistic, refetch }: ProductMutationOptions<TVars> = {},
+) {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: request,
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: KEY })
+    onMutate: async (vars) => {
+      if (!optimistic) return undefined
+      await queryClient.cancelQueries({ queryKey: KEY })
+      const previous = queryClient.getQueryData<ProductsCache>(KEY)
+      queryClient.setQueryData<ProductsCache>(
+        KEY,
+        (old) =>
+          old && {
+            products: old.products.map((p) => (p.id === vars.id ? optimistic(p, vars) : p)),
+          },
+      )
+      return { previous }
+    },
+    onSuccess: ({ product }) => {
+      // Un producto recién creado se agrega a la lista para poder abrir su edición sin esperar al refetch.
+      queryClient.setQueryData<ProductsCache>(
+        KEY,
+        (old) =>
+          old && {
+            products: old.products.some((p) => p.id === product.id)
+              ? old.products.map((p) => (p.id === product.id ? product : p))
+              : [...old.products, product],
+          },
+      )
+      if (refetch) void queryClient.invalidateQueries({ queryKey: KEY })
+      // Solo refrescan si esas pantallas están abiertas.
       void queryClient.invalidateQueries({ queryKey: ['menu'] })
       void queryClient.invalidateQueries({ queryKey: ['product'] })
     },
-    onError: (err) => toast.error(err.message),
+    onError: (err, _vars, context) => {
+      if (context?.previous) queryClient.setQueryData(KEY, context.previous)
+      toast.error(err.message)
+      void queryClient.invalidateQueries({ queryKey: KEY })
+    },
   })
 }
 
-type ProductResponse = { product: Product }
-
 export const productRequests = {
-  create: (input: ProductInput) =>
+  create: (input: ProductInput & { id?: undefined }) =>
     api<ProductResponse>('/manager/products', { method: 'POST', body: input }),
   update: ({ id, ...input }: ProductInput & { id: string }) =>
     api<ProductResponse>(`/manager/products/${id}`, { method: 'PATCH', body: input }),
@@ -54,4 +94,22 @@ export const productRequests = {
   },
   removeImage: ({ id }: { id: string }) =>
     api<ProductResponse>(`/manager/products/${id}/image`, { method: 'DELETE' }),
+}
+
+// Opciones de cada acción, para usarlas igual en todas las pantallas.
+export const productMutationOptions = {
+  create: { refetch: true },
+  update: { refetch: true },
+  setAvailability: {
+    optimistic: (product: Product, vars: { isAvailable: boolean }) => ({
+      ...product,
+      isAvailable: vars.isAvailable,
+    }),
+  },
+  setActive: {
+    optimistic: (product: Product, vars: { isActive: boolean }) => ({
+      ...product,
+      isActive: vars.isActive,
+    }),
+  },
 }

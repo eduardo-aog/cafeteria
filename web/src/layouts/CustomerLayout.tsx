@@ -22,17 +22,20 @@ export default function CustomerLayout() {
       </main>
       <nav
         aria-label="Navegación principal"
-        className="fixed inset-x-0 bottom-0 border-t border-border bg-card"
+        className="fixed inset-x-0 bottom-0 bg-primary text-primary-foreground"
       >
         <ul className="mx-auto flex max-w-120">
           {NAV.map(({ to, label, icon: Icon }) => (
-            <li key={to} className="flex-1">
+            <li key={to} className="flex-1 p-1">
               <NavLink
                 to={to}
                 className={({ isActive }) =>
                   cn(
-                    'flex min-h-14 flex-col items-center justify-center gap-1 text-xs font-medium transition-colors duration-150',
-                    isActive ? 'text-primary' : 'text-muted-foreground',
+                    // El activo va en crema pleno, en negrita y sobre un fondo suave: no depende solo del color.
+                    'flex min-h-12 flex-col items-center justify-center gap-1 rounded-lg text-xs transition-colors duration-150',
+                    isActive
+                      ? 'bg-primary-foreground/15 font-semibold text-primary-foreground'
+                      : 'font-medium text-primary-foreground/70',
                   )
                 }
               >

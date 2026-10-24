@@ -33,7 +33,7 @@ Rellena los valores:
 |---|---|---|
 | `SUPABASE_URL` | `api/.env` | Supabase → Project Settings → API → Project URL (solo el dominio, sin rutas) |
 | `SUPABASE_SERVICE_ROLE_KEY` | `api/.env` | Project Settings → API Keys → `service_role` o `secret` (privada: nunca en `web/`) |
-| `DATABASE_URL` | `api/.env` | Connect → Transaction pooler (puerto 6543), con `?pgbouncer=true&connection_limit=1` al final |
+| `DATABASE_URL` | `api/.env` | Connect → Transaction pooler (puerto 6543), con `?pgbouncer=true&connection_limit=1` al final (ver nota de rendimiento abajo) |
 | `DIRECT_URL` | `api/.env` | Connect → Session pooler (puerto 5432) |
 | `VITE_SUPABASE_URL` | `web/.env` | El mismo valor que `SUPABASE_URL` |
 | `VITE_SUPABASE_ANON_KEY` | `web/.env` | Project Settings → API Keys → `anon` o `publishable` |
@@ -81,3 +81,12 @@ La cámara (escáner del cajero) exige HTTPS. `npm run dev:https` en `web/` leva
 ## Despliegue
 
 El despliegue en Render (servidor como *Web Service* y página como *Static Site*) se documenta en la Fase 10.
+
+## Rendimiento y latencia hacia la base de datos
+
+Cada consulta a Supabase es un viaje de red. Si tu conexión es lenta (por ejemplo con VPN), cada viaje puede costar más de medio segundo y las acciones se notan lentas; en Render, con el servidor y la base en la misma región, cuesta milisegundos. Para mejorarlo en desarrollo:
+
+- Prueba con la VPN apagada (las migraciones ya lo requieren por el puerto 5432).
+- Opcional: sube `connection_limit` en `DATABASE_URL` de `api/.env` (por ejemplo `connection_limit=5`) para que las consultas en paralelo corran en paralelo. Con `connection_limit=1` se hacen una tras otra.
+- Con `npm run dev` en `api/`, cada petición imprime su duración (`MÉTODO ruta estado ms`).
+

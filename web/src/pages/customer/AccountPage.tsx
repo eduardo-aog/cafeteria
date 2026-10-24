@@ -22,7 +22,7 @@ export default function AccountPage() {
           </div>
         </CardContent>
       </Card>
-      <Button variant="secondary" onClick={() => void signOut()}>
+      <Button variant="destructive" onClick={() => void signOut()}>
         Cerrar sesión
       </Button>
     </div>

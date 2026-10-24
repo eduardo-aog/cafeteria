@@ -1,11 +1,10 @@
 import { Router } from 'express'
 import { z } from 'zod'
 import { isStoreOpen, nextOpening } from '../domain/schedule.js'
-import { prisma } from '../lib/prisma.js'
 import { requireAuth } from '../middleware/auth.js'
 import { AppError } from '../middleware/error.js'
 import { requireCustomer } from '../middleware/permissions.js'
-import { toProductDto, sortProducts } from '../services/products.js'
+import { getProduct, getProducts, sortProducts, toProductDto } from '../services/products.js'
 import { getLatestRate } from '../services/rates.js'
 import { getSettings } from '../services/settings.js'
 
@@ -20,15 +19,16 @@ const rateDto = (rate: { rateHundredths: number; bcvDate: Date } | null) =>
 // Público: el menú se puede ver siempre, incluso con el local cerrado (8.2).
 menuRouter.get('/menu', async (_req, res) => {
   const [products, rate, settings] = await Promise.all([
-    prisma.product.findMany({ where: { isActive: true } }),
+    getProducts(),
     getLatestRate(),
     getSettings(),
   ])
   const now = new Date()
   const isOpen = isStoreOpen(now, settings)
   res.json({
-    products: sortProducts(products).map((p) => toProductDto(p, rate)),
+    products: sortProducts(products.filter((p) => p.isActive)).map((p) => toProductDto(p, rate)),
     rate: rateDto(rate),
+    limits: { maxQuantityPerProduct: settings.maxQuantityPerProduct },
     store: {
       isOpen,
       openDays: settings.openDays,
@@ -41,8 +41,8 @@ menuRouter.get('/menu', async (_req, res) => {
 
 menuRouter.get('/products/:id', requireAuth, requireCustomer, async (req, res) => {
   const { id } = z.object({ id: z.uuid() }).parse(req.params)
-  const product = await prisma.product.findFirst({ where: { id, isActive: true } })
-  if (!product) throw new AppError('PRODUCT_NOT_FOUND', 'Producto no encontrado.', 404)
+  const product = await getProduct(id)
+  if (!product?.isActive) throw new AppError('PRODUCT_NOT_FOUND', 'Producto no encontrado.', 404)
   const rate = await getLatestRate()
   res.json({
     product: toProductDto(product, rate),

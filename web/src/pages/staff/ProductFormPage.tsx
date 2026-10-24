@@ -14,7 +14,12 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { NativeSelect } from '@/components/ui/native-select'
 import { Textarea } from '@/components/ui/textarea'
-import { productRequests, useManagerProducts, useProductMutation } from '@/hooks/useManagerProducts'
+import {
+  productMutationOptions,
+  productRequests,
+  useManagerProducts,
+  useProductMutation,
+} from '@/hooks/useManagerProducts'
 import { usePermissions } from '@/hooks/usePermissions'
 import { formatDecimal, parseUsdToCents } from '@/lib/format'
 import { CATEGORY_LABELS, type Category, type Product } from '@/lib/types'
@@ -55,8 +60,8 @@ export default function ProductFormPage() {
 function ProductForm({ product }: { product?: Product }) {
   const navigate = useNavigate()
   const { has } = usePermissions()
-  const create = useProductMutation(productRequests.create)
-  const update = useProductMutation(productRequests.update)
+  const create = useProductMutation(productRequests.create, productMutationOptions.create)
+  const update = useProductMutation(productRequests.update, productMutationOptions.update)
 
   const {
     register,
@@ -213,7 +218,7 @@ function ImageSection({ product }: { product: Product }) {
 
 // Solo el administrador: baja y reactivación (un producto nunca se borra).
 function ActiveSection({ product }: { product: Product }) {
-  const setActive = useProductMutation(productRequests.setActive)
+  const setActive = useProductMutation(productRequests.setActive, productMutationOptions.setActive)
 
   return (
     <section className="flex flex-col gap-3">
