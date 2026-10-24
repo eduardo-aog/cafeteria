@@ -1,5 +1,4 @@
-import { Link } from 'react-router-dom'
-import { ArrowLeft } from 'lucide-react'
+import { BackLink } from '@/components/BackLink'
 import { EmptyBlock, ErrorBlock, LoadingBlock } from '@/components/QueryState'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -13,13 +12,7 @@ export default function HistoryPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <Link
-        to="/pedidos"
-        className="inline-flex min-h-11 items-center gap-1 self-start text-sm font-medium text-primary"
-      >
-        <ArrowLeft className="size-5" strokeWidth={1.5} aria-hidden="true" />
-        Volver a pedidos
-      </Link>
+      <BackLink to="/pedidos" />
       <h1 className="text-2xl">Historial</h1>
 
       {history.isPending && <LoadingBlock />}

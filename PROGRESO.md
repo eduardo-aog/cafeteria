@@ -1,9 +1,9 @@
 # Progreso del proyecto
 
 ## Estado actual
-- Fase: 8 — Puntos y cupones
-- Rama: feat/fase-08-puntos
-- Paso: esperando ⛔ PARADA 8.Z — Cierre de la Fase 8, con pruebas sobre https://vibecoffe.onrender.com
+- Fase: 9 — Administración y reportes
+- Rama: feat/fase-09-admin
+- Paso: esperando ⛔ PARADA 9.Z — Cierre de la Fase 9, con pruebas sobre https://vibecoffe.onrender.com
 
 ## Paradas confirmadas
 - 0.A Requisitos previos — 2026-10-23
@@ -17,6 +17,7 @@
 - 6.A Preparar el teléfono — omitida por decisión del usuario (se prueba en el sitio publicado)
 - 6.Z Cierre de la Fase 6 — 2026-10-24 (probada por el usuario en https://vibecoffe.onrender.com)
 - 7.Z Cierre de la Fase 7 — 2026-10-24 (probada por el usuario en https://vibecoffe.onrender.com)
+- 8.Z Cierre de la Fase 8 — 2026-10-24 (probada por el usuario en https://vibecoffe.onrender.com)
 - 7.A Teléfono como escáner — omitida por decisión del usuario (el sitio publicado ya tiene HTTPS, la cámara funciona sin la red local)
 - 10.0 Unir la rama antes de desplegar (adelantada) — 2026-10-23, PR #6
 - 10.A Servidor en Render (adelantada) — 2026-10-23: https://cafeteria-api-1ej1.onrender.com (`/api/health`, `/api/health/db`, `/api/menu` y `/api/banks` responden; `/api/me` sin sesión da 401)
@@ -29,6 +30,7 @@
 - Fase 5 — Checkout (unida a main el 2026-10-23, PR #5)
 - Fase 6 — Pago y verificación (unida a main el 2026-10-23, PR #6; cerrada el 2026-10-24)
 - Fase 7 — Retiro y barra (unida a main el 2026-10-24; cerrada el 2026-10-24)
+- Fase 8 — Puntos y cupones (unida a main el 2026-10-24; cerrada el 2026-10-24)
 
 ## Decisiones menores tomadas
 - Fase 1: el repositorio de GitHub pasó a ser público (decisión del usuario, para facilitar el despliegue). Ningún `.env` ni clave está en el historial.
@@ -104,6 +106,13 @@
 - Fase 8 (web): `/puntos` (saldo, accesos y movimientos paginados), `/recompensas` (canje con diálogo y aviso de vencimiento; «Te faltan N puntos» si no alcanza), `/cupones` (pestañas Disponibles, Usados y Vencidos; «En tu checkout» y «No disponible»), «Tus cupones para este producto» con «Agregar con cupón» en el detalle, líneas con cupón en el checkout (sin selector de cantidad) y `/trabajo/recompensas` con su formulario para el administrador. Se redactó el vencimiento como «Vence el 31/10/2026 (en 8 días)».
 - Fase 8: verificación: 62 comprobaciones de la API contra Supabase real (catálogo, validaciones del administrador, canje, carrera de dos canjes con puntos para uno, movimientos paginados, aplicación con cupón y todos los rechazos, liberación al quitar/cancelar/expirar, `RESERVED` que no vence, vencimiento por tarea y perezoso, producto gratis dado de baja), sin restos de datos; y la interfaz en Firefox real (canje con aviso de vencimiento, movimientos, cupones, cupón en el producto y en el checkout, cancelar y recuperar el cupón, formulario del administrador, desactivar al instante, y el pedido de $0 con «Confirmar pedido» hasta «Pagado»). Dos fallos de mis scripts (hacer clic antes de que `/puntos` terminara de dibujarse) se aclararon y no eran de la aplicación.
 - Fase 8: observación para las pruebas: `cliente@demo.com` tiene hoy 5.500 puntos (no 1.500, porque ya ganó con los pedidos de las Fases 6 y 7) y un checkout abierto.
+- Fase 9 (peticiones del usuario): (1) botón «Atrás» en todas las subpantallas, con un solo componente (`BackLink`, siempre lleva a la pantalla de origen y dice «Atrás»): los formularios de producto y de recompensa (también en «no encontrado») que no lo tenían, y se unificaron los enlaces que ya existían (producto, pagar, detalle de pedido, historial, recompensas y cupones); (2) barra inferior del cliente en el teléfono: ahora la pantalla es una columna de `100dvh` (altura visible real, que sigue a las barras del navegador móvil) con encabezado, contenido que se desplaza por dentro y la barra como último elemento, en lugar de `position: fixed`; se retiró `viewport-fit=cover` y el margen de zona segura que se había añadido en la Fase 7, que en iPhone podía dejar la barra tapada hasta deslizar y un rectángulo debajo. Se midió en Firefox (390×700 y 1280×800): la parte baja de la barra coincide con el alto de la ventana al abrir, al desplazar y al final, la página no tiene scroll propio y el scroll interno vuelve a 0 al cambiar de pantalla. No se puede reproducir el comportamiento real de las barras de Safari o Chrome del teléfono desde aquí: se prueba en 9.Z.
+- Fase 9: `GET/PATCH /admin/settings` (parámetros, datos de cobro y horario) con validación de rangos razonables: cédula (V, E) de 6 a 9 dígitos, RIF (J, G) de 9, teléfono `04XXXXXXXXX`, banco de la lista, horas `HH:mm` con cierre posterior a la apertura, al menos un día abierto, tope por producto de 1 a 100 (por el CHECK de la base). Se valida el resultado combinado, no solo los campos enviados. El cambio aplica al instante (se invalida el caché de ajustes) y no recalcula pedidos existentes.
+- Fase 9: `GET /admin/users?email=` (coincidencia exacta, sin distinguir mayúsculas; 404 si no existe) y `PATCH /admin/users/:id/permissions` con `canCashier`, `canBarista` y `canManager` (estricto: un campo extra como `isAdmin` da 400). El permiso vale de inmediato porque se invalida el perfil en memoria. Quitar todos los permisos devuelve la cuenta a cliente; el administrador puede darse cajero y barista (su permiso de gerente va incluido, por eso esa casilla aparece desactivada para él).
+- Fase 9: reportes (`GET /admin/reports?period=today|week|month|custom&from=&to=`, solo pantalla): una venta es un pedido con `paidAt` en el período y en `PAID`, `IN_QUEUE` o `DELIVERED`, con los montos congelados. Los períodos se calculan en hora de Caracas (semana de lunes a domingo; rango personalizado inclusivo, máximo un año) y devuelven total en $ y Bs, pedidos, desglose por producto y por categoría, top 10 por unidades y demanda por hora (0–23) y por día (lunes a domingo). La agrupación por hora y día se hace en memoria con Luxon (función pura probada) en lugar de `$queryRaw`, lo que la hace verificable con datos conocidos; incluye la frontera de medianoche (una venta a las 23:30 de Caracas cae en su día aunque en UTC sea el siguiente). `GET /manager/sales-today` usa el mismo servicio: cuadra con el reporte de «hoy».
+- Fase 9: `npm run db:seed:sales` (`api/prisma/seed-sales.ts`): 249 pedidos ya entregados de los últimos 28 días (sin domingos, con picos a mediodía y media tarde, más movimiento los viernes y sábados) a nombre de una cuenta propia «Ventas históricas» (`ventas-historicas@demo.com`, sin cuenta en Supabase Auth: no puede iniciar sesión), con pseudoaleatorio de semilla fija. Es idempotente (borra y regenera los pedidos de esa cuenta) y rápido (inserciones en bloque). No se incluye en el seed principal. Esos pedidos aparecen en los reportes y se borran con la limpieza de la PARADA 10.F.
+- Fase 9 (web): `/trabajo/configuracion`, `/trabajo/permisos`, `/trabajo/reportes` (selector Hoy, Semana, Mes y Rango; totales, tablas por categoría y producto, y tres gráficas con el componente de gráficos de shadcn sobre Recharts: top 10, demanda por hora y por día; la pantalla de reportes usa un contenedor más ancho, como pide 10.1) y `/trabajo/ventas-hoy`. Colores de las gráficas: `--primary` y `--caramel`. Se añadió la dependencia `recharts` y `components/ui/chart.tsx` (se quitó su variante oscura).
+- Fase 9: verificación: 62 comprobaciones de la API contra Supabase real (accesos por rol, 13 configuraciones inválidas, efecto inmediato del tope y de los datos de cobro, horario, permisos por correo con efecto inmediato, reportes con datos conocidos y la frontera de zona horaria, rangos inválidos y concordancia con «ventas de hoy») y la interfaz en Firefox real (reportes con las tres gráficas en escritorio y teléfono, configuración con validaciones y guardado, permisos hasta que la cuenta entra a `/trabajo`, ventas de hoy igual al reporte, «Atrás»). Sin restos: la configuración y los permisos se restauraron.
 
 ## Contraste de la paleta (10.6, mínimo AA)
 | Pareja | Ratio |

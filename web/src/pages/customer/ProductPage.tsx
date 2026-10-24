@@ -1,6 +1,7 @@
 import { useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
-import { ArrowLeft, Clock, LoaderCircle } from 'lucide-react'
+import { useParams } from 'react-router-dom'
+import { Clock, LoaderCircle } from 'lucide-react'
+import { BackLink } from '@/components/BackLink'
 import { Price } from '@/components/Price'
 import { ProductImage } from '@/components/ProductImage'
 import { ErrorBlock, LoadingBlock } from '@/components/QueryState'
@@ -27,13 +28,7 @@ export default function ProductPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <Link
-        to="/menu"
-        className="inline-flex min-h-11 items-center gap-1 self-start text-sm font-medium text-primary"
-      >
-        <ArrowLeft className="size-5" strokeWidth={1.5} aria-hidden="true" />
-        Volver al menú
-      </Link>
+      <BackLink to="/menu" />
 
       {query.isPending && <LoadingBlock />}
       {query.isError &&

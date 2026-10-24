@@ -1,6 +1,5 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
-import { ArrowLeft } from 'lucide-react'
+import { BackLink } from '@/components/BackLink'
 import { EmptyBlock, ErrorBlock, LoadingBlock } from '@/components/QueryState'
 import { SegmentedControl } from '@/components/SegmentedControl'
 import { StatusBadge } from '@/components/StatusBadge'
@@ -29,13 +28,7 @@ export default function CouponsPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <Link
-        to="/puntos"
-        className="inline-flex min-h-11 items-center gap-1 self-start text-sm font-medium text-primary"
-      >
-        <ArrowLeft className="size-5" strokeWidth={1.5} aria-hidden="true" />
-        Volver a puntos
-      </Link>
+      <BackLink to="/puntos" />
       <h1 className="text-2xl">Mis cupones</h1>
       <SegmentedControl
         label="Estado de los cupones"

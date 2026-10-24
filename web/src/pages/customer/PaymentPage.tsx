@@ -3,8 +3,9 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft, ClipboardPaste, Copy } from 'lucide-react'
+import { ClipboardPaste, Copy } from 'lucide-react'
 import { toast } from 'sonner'
+import { BackLink } from '@/components/BackLink'
 import { FieldError } from '@/components/AuthShell'
 import { LoadingBlock } from '@/components/QueryState'
 import { Button } from '@/components/ui/button'
@@ -24,13 +25,7 @@ export default function PaymentPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <Link
-        to="/checkout"
-        className="inline-flex min-h-11 items-center gap-1 self-start text-sm font-medium text-primary"
-      >
-        <ArrowLeft className="size-5" strokeWidth={1.5} aria-hidden="true" />
-        Volver al checkout
-      </Link>
+      <BackLink to="/checkout" />
       <h1 className="text-2xl">Pagar</h1>
 
       {prepared.isPending && <LoadingBlock />}

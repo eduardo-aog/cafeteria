@@ -123,4 +123,5 @@ Variables: `VITE_API_URL` (URL del servidor + `/api`), `VITE_SUPABASE_URL` y `VI
 El seed no corre en Render: se ejecutó desde tu computador sobre la misma base de datos. Las migraciones sí se aplican al arrancar (`prisma migrate deploy`).
 
 El plan gratuito suspende el servidor tras un rato sin tráfico y la primera visita tarda en responder. Un monitor de UptimeRobot a `/api/health/db` cada 5 minutos lo evita y mantiene activo el proyecto gratuito de Supabase.
+- `npm run db:seed:sales` (en `api/`) genera pedidos históricos ya entregados para que los reportes muestren datos. Es idempotente y no forma parte del seed principal.
 

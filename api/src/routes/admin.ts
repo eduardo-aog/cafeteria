@@ -1,6 +1,13 @@
 import { Router } from 'express'
 import { z } from 'zod'
 import { requireAuth } from '../middleware/auth.js'
+import {
+  getAdminSettings,
+  settingsPatchInput,
+  updateAdminSettings,
+} from '../services/adminSettings.js'
+import { salesReport } from '../services/reports.js'
+import { findUserByEmail, setPermissions } from '../services/users.js'
 import { requirePerm } from '../middleware/permissions.js'
 import { toProductDto, updateProduct } from '../services/products.js'
 import {
@@ -36,4 +43,52 @@ adminRouter.post('/admin/rewards', async (req, res) => {
 adminRouter.patch('/admin/rewards/:id', async (req, res) => {
   const { id } = z.object({ id: z.uuid() }).parse(req.params)
   res.json({ reward: await updateReward(id, rewardUpdateInput.parse(req.body)) })
+})
+
+// Parámetros del sistema, datos de cobro y horario (8.11).
+adminRouter.get('/admin/settings', async (_req, res) => {
+  res.json({ settings: await getAdminSettings() })
+})
+
+adminRouter.patch('/admin/settings', async (req, res) => {
+  res.json({ settings: await updateAdminSettings(settingsPatchInput.parse(req.body)) })
+})
+
+// Permisos: se busca una cuenta ya registrada por su correo y se activan o desactivan cajero, barista y gerente.
+adminRouter.get('/admin/users', async (req, res) => {
+  const { email } = z.object({ email: z.string().trim().min(3).max(254) }).parse(req.query)
+  res.json({ user: await findUserByEmail(email) })
+})
+
+adminRouter.patch('/admin/users/:id/permissions', async (req, res) => {
+  const { id } = z.object({ id: z.uuid() }).parse(req.params)
+  // .strict(): cualquier intento de tocar isAdmin (u otro campo) se rechaza.
+  const permissions = z
+    .object({ canCashier: z.boolean(), canBarista: z.boolean(), canManager: z.boolean() })
+    .strict()
+    .parse(req.body)
+  res.json({ user: await setPermissions(id, permissions) })
+})
+
+const dateOnly = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Usa el formato AAAA-MM-DD.')
+
+// Reportes en pantalla (8.10): hoy, semana, mes o un rango (todo en hora de Caracas).
+adminRouter.get('/admin/reports', async (req, res) => {
+  const query = z
+    .object({
+      period: z.enum(['today', 'week', 'month', 'custom']),
+      from: dateOnly.optional(),
+      to: dateOnly.optional(),
+    })
+    .refine((v) => v.period !== 'custom' || (v.from && v.to), {
+      path: ['from'],
+      message: 'Indica las fechas «desde» y «hasta».',
+    })
+    .parse(req.query)
+  res.json(
+    await salesReport(
+      query.period,
+      query.from && query.to ? { from: query.from, to: query.to } : undefined,
+    ),
+  )
 })
