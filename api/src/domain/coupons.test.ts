@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { daysUntil, endOfMonthCaracas, isCouponApplicable } from './coupons.js'
+import { daysUntil, endOfMonthCaracas, isCouponApplicable, isExpiringSoon } from './coupons.js'
 
 const now = new Date('2026-10-23T15:00:00Z')
 
@@ -51,5 +51,20 @@ describe('isCouponApplicable', () => {
     expect(
       isCouponApplicable({ ...pct, expiresAt: new Date('2026-10-01T00:00:00Z') }, latte, now),
     ).toBe(false)
+  })
+})
+
+describe('isExpiringSoon', () => {
+  it('menos de 5 días es un aviso fuerte; 5 o más, no', () => {
+    expect(isExpiringSoon(0)).toBe(true)
+    expect(isExpiringSoon(4)).toBe(true)
+    expect(isExpiringSoon(5)).toBe(false)
+    expect(isExpiringSoon(20)).toBe(false)
+  })
+
+  it('cerca del fin de mes (28 de octubre) quedan 3 días y el aviso es fuerte', () => {
+    const expiresAt = endOfMonthCaracas(new Date('2026-10-28T15:00:00Z'))
+    expect(isExpiringSoon(daysUntil(expiresAt, new Date('2026-10-28T15:00:00Z')))).toBe(true)
+    expect(isExpiringSoon(daysUntil(expiresAt, new Date('2026-10-10T15:00:00Z')))).toBe(false)
   })
 })

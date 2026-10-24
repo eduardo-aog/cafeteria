@@ -119,6 +119,19 @@ const PRODUCTS = [
   },
 ] as const
 
+// Recompensas de demostración (sección 15): tres productos gratis y un 50 % a elección.
+const REWARDS = [
+  { name: 'Latte gratis', type: 'FREE_PRODUCT', productName: 'Latte', costPoints: 800 },
+  { name: 'Moca gratis', type: 'FREE_PRODUCT', productName: 'Moca', costPoints: 900 },
+  {
+    name: 'Chocolate gratis',
+    type: 'FREE_PRODUCT',
+    productName: 'Chocolate caliente',
+    costPoints: 700,
+  },
+  { name: '50 % en un producto', type: 'PERCENT_DISCOUNT', percent: 50, costPoints: 400 },
+] as const
+
 // Cuentas de demostración (sección 15): todas con la contraseña SEED_DEMO_PASSWORD.
 const DEMO_USERS = [
   { email: 'cajero@demo.com', name: 'Cajero Demo', canCashier: true, pointsBalance: 0 },
@@ -179,6 +192,28 @@ async function main() {
     if (!exists) await prisma.product.create({ data: product })
   }
 
+  // Solo se crean las que no existen por nombre: no pisa lo que el administrador haya editado.
+  for (const reward of REWARDS) {
+    const exists = await prisma.reward.findFirst({
+      where: { name: reward.name },
+      select: { id: true },
+    })
+    if (exists) continue
+    const product =
+      'productName' in reward
+        ? await prisma.product.findFirstOrThrow({ where: { name: reward.productName } })
+        : null
+    await prisma.reward.create({
+      data: {
+        name: reward.name,
+        type: reward.type,
+        percent: 'percent' in reward ? reward.percent : null,
+        productId: product?.id ?? null,
+        costPoints: reward.costPoints,
+      },
+    })
+  }
+
   // Tasa de respaldo (Bs 886,23) solo si nunca se ha guardado ninguna. Se marca como antigua
   // (fetchedAt) para que el arranque consulte el BCV y cualquier tasa real la reemplace.
   if ((await prisma.exchangeRate.count()) === 0) {
@@ -216,7 +251,7 @@ async function main() {
   }
 
   console.log(
-    `Seed listo: Settings, ${BANKS.length} bancos, ${PRODUCTS.length} productos, administrador y ${DEMO_USERS.length} cuentas de demostración.`,
+    `Seed listo: Settings, ${BANKS.length} bancos, ${PRODUCTS.length} productos, ${REWARDS.length} recompensas, administrador y ${DEMO_USERS.length} cuentas de demostración.`,
   )
 }
 

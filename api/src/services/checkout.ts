@@ -7,6 +7,7 @@ import { prisma } from '../lib/prisma.js'
 import { TX_OPTIONS } from '../lib/tx.js'
 import { AppError } from '../middleware/error.js'
 import { expireStaleCheckouts } from './checkoutExpiration.js'
+import { releaseCoupons, releaseCouponsOfOrders } from './coupons.js'
 import { getProduct } from './products.js'
 import { getLatestRate } from './rates.js'
 import { getSettings } from './settings.js'
@@ -130,7 +131,12 @@ const limitError = (max: number) =>
     409,
   )
 
-export async function addItem(userId: string, productId: string, quantity: number) {
+export async function addItem(
+  userId: string,
+  productId: string,
+  quantity: number,
+  couponId?: string,
+) {
   const settings = await getSettings()
   const now = new Date()
   if (!isStoreOpen(now, settings)) {
@@ -174,14 +180,38 @@ export async function addItem(userId: string, productId: string, quantity: numbe
       throw limitError(settings.maxQuantityPerProduct)
     }
 
+    if (couponId) {
+      // Con cupón: siempre una línea nueva de 1 unidad (8.5). La reserva es una actualización condicional
+      // que ya comprueba dueño, estado, vencimiento y que sirva para este producto (8.9).
+      const reserved = await tx.coupon.updateMany({
+        where: {
+          id: couponId,
+          userId,
+          status: 'AVAILABLE',
+          expiresAt: { gt: now },
+          OR: [{ type: 'PERCENT_DISCOUNT' }, { type: 'FREE_PRODUCT', productId }],
+        },
+        data: { status: 'RESERVED' },
+      })
+      if (reserved.count === 0) {
+        throw new AppError(
+          'COUPON_NOT_APPLICABLE',
+          'Ese cupón no se puede usar con este producto o ya no está disponible.',
+          409,
+        )
+      }
+    }
+
     // Sin cupón: se suma a la línea existente del producto (8.5).
-    const line = open.items.find((i) => i.productId === productId && i.couponId === null)
+    const line = couponId
+      ? undefined
+      : open.items.find((i) => i.productId === productId && i.couponId === null)
     const items = line
       ? open.items.map((i) => (i.id === line.id ? { ...i, quantity: i.quantity + quantity } : i))
       : [
           ...open.items,
           await tx.orderItem.create({
-            data: { orderId: open.id, productId, quantity },
+            data: { orderId: open.id, productId, quantity, ...(couponId && { couponId }) },
             include: { product: true, coupon: true },
           }),
         ]
@@ -245,6 +275,7 @@ export async function removeItem(userId: string, itemId: string) {
   const order = await withCustomerLock(userId, async (tx) => {
     const item = await findEditableItem(tx, userId, itemId)
     await tx.orderItem.delete({ where: { id: item.id }, select: { id: true } })
+    if (item.couponId) await releaseCoupons(tx, [item.couponId])
     const items = item.order.items.filter((i) => i.id !== item.id)
     if (items.length === 0) {
       await tx.order.updateMany({
@@ -265,7 +296,10 @@ export async function cancelCheckout(userId: string, orderId: string) {
       where: { id: orderId, customerId: userId, status: 'CREATED' },
       data: { status: 'CANCELLED', cancelledAt: new Date() },
     })
-    if (result.count > 0) return
+    if (result.count > 0) {
+      await releaseCouponsOfOrders(tx, [orderId])
+      return
+    }
     // No cambió nada: se distingue «no es tuyo o no existe» de «ya no se puede cancelar».
     const exists = await tx.order.findFirst({
       where: { id: orderId, customerId: userId },

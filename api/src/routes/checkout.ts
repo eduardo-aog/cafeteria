@@ -1,7 +1,6 @@
 import { Router } from 'express'
 import { z } from 'zod'
 import { requireAuth } from '../middleware/auth.js'
-import { AppError } from '../middleware/error.js'
 import { requireCustomer } from '../middleware/permissions.js'
 import { confirmFree, preparePayment, submitPayment } from '../services/payment.js'
 import {
@@ -30,17 +29,15 @@ checkoutRouter.post('/checkout/items', async (req, res) => {
     quantity: units,
     couponId,
   } = z
-    .object({
-      productId: uuid,
-      quantity,
-      couponId: z.string().nullish(),
+    .object({ productId: uuid, quantity, couponId: uuid.nullish() })
+    .refine((v) => !v.couponId || v.quantity === 1, {
+      path: ['quantity'],
+      message: 'Una línea con cupón es de una sola unidad.',
     })
     .parse(req.body)
-  // Los cupones se habilitan en la Fase 8.
-  if (couponId) {
-    throw new AppError('COUPONS_NOT_AVAILABLE', 'Los cupones aún no están disponibles.', 400)
-  }
-  res.status(201).json({ checkout: await addItem(req.user!.id, productId, units) })
+  res.status(201).json({
+    checkout: await addItem(req.user!.id, productId, units, couponId ?? undefined),
+  })
 })
 
 checkoutRouter.patch('/checkout/items/:itemId', async (req, res) => {
