@@ -1,4 +1,4 @@
-# Cafetería
+# Vibecoffe
 
 Aplicación web de pedidos anticipados (solo retiro en el mostrador) para una cafetería, con pago por Pago Móvil y sistema de puntos. La especificación completa está en [`CLAUDE.md`](CLAUDE.md) y el avance en [`PROGRESO.md`](PROGRESO.md).
 

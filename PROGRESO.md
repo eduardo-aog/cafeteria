@@ -2,8 +2,8 @@
 
 ## Estado actual
 - Fase: 6 — Pago y verificación
-- Rama: feat/fase-06-pago
-- Paso: trabajo técnico de la Fase 6 terminado; el usuario decidió desplegar antes de probar: esperando ⛔ PARADA 10.0 (adelantada) — Unir la rama antes de desplegar. Después 10.A, 10.B y 10.C, y entonces el cierre ⛔ PARADA 6.Z sobre el sitio publicado
+- Rama: main (la rama feat/fase-06-pago ya está unida, PR #6)
+- Paso: esperando ⛔ PARADA 10.B — Página en Render (adelantada). Falta el cierre ⛔ PARADA 6.Z, que se hará sobre el sitio publicado
 
 ## Paradas confirmadas
 - 0.A Requisitos previos — 2026-10-23
@@ -14,6 +14,9 @@
 - 3.Z Cierre de la Fase 3 — 2026-10-23
 - 4.Z Cierre de la Fase 4 — 2026-10-23
 - 5.Z Cierre de la Fase 5 — 2026-10-23
+- 6.A Preparar el teléfono — omitida por decisión del usuario (se prueba en el sitio publicado)
+- 10.0 Unir la rama antes de desplegar (adelantada) — 2026-10-23, PR #6
+- 10.A Servidor en Render (adelantada) — 2026-10-23: https://cafeteria-api-1ej1.onrender.com (`/api/health`, `/api/health/db`, `/api/menu` y `/api/banks` responden; `/api/me` sin sesión da 401)
 
 ## Fases cerradas
 - Fase 1 — Base del repositorio (unida a main el 2026-10-23, PR #1)
@@ -83,6 +86,7 @@
 - Fase 6: con el navegador automatizado no se pueden verificar `COPIAR TODO` ni `PEGAR` (no concede permisos de portapapeles): sí se comprobó el aviso cuando no hay permiso, el filtro de solo dígitos, las validaciones del formulario y todo el flujo. La copia y el pegado reales se prueban en 6.Z con el teléfono.
 - Fase 6 (decisión del usuario, 2026-10-23): no se prueba con `localhost`/teléfono en la red local; se despliega primero en Render y las pruebas de la Fase 6 se hacen sobre el sitio publicado. Por eso la **PARADA 6.A (preparar el teléfono) se omite** y se adelantan de la Fase 10 las paradas 10.0 (unir la rama a `main`), 10.A (servidor), 10.B (página) y 10.C (cruzar las URLs). Quedan para la Fase 10 la 10.D (UptimeRobot), la 10.E y 10.F. Antes de pedir la 10.0 se comprobó: `.node-version` y `package-lock.json` en ambas carpetas, `npm ci --dry-run` sin errores, y la API compilada en modo producción (`node dist/index.js` con `NODE_ENV=production`): `/api/health`, `/api/health/db` y `/api/menu` responden y CORS devuelve `WEB_ORIGIN`. El README documenta las tablas de Render (sin `PORT`: Render asigna el puerto).
 - Fase 6: las pruebas del cierre 6.Z («copiar y pegar» en el teléfono, aprobar desde el cajero, bloqueo por 3 rechazos, referencia repetida y doble aprobación) se harán con las URLs de Render.
+- Nombre del proyecto (decisión del usuario, 2026-10-23): **Vibecoffe**. `APP_NAME` en `web/src/config.ts` pasa de «Cafetería» a «Vibecoffe» (el valor provisional que preveía la especificación), y también cambian el `<title>` de `web/index.html` y el título del README. Los nombres técnicos (`cafeteria-api` y `cafeteria-web` en Render, `cafeteria` en GitHub y los `name` de los `package.json`) se dejan como están. No hay logotipo: solo el nombre en Lora.
 
 ## Contraste de la paleta (10.6, mínimo AA)
 | Pareja | Ratio |
