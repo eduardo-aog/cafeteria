@@ -3,7 +3,7 @@
 ## Estado actual
 - Fase: 6 — Pago y verificación
 - Rama: main (la rama feat/fase-06-pago ya está unida, PR #6)
-- Paso: esperando ⛔ PARADA 10.A — Servidor en Render (adelantada). Falta el cierre ⛔ PARADA 6.Z, que se hará sobre el sitio publicado
+- Paso: esperando ⛔ PARADA 10.B — Página en Render (adelantada). Falta el cierre ⛔ PARADA 6.Z, que se hará sobre el sitio publicado
 
 ## Paradas confirmadas
 - 0.A Requisitos previos — 2026-10-23
@@ -16,6 +16,7 @@
 - 5.Z Cierre de la Fase 5 — 2026-10-23
 - 6.A Preparar el teléfono — omitida por decisión del usuario (se prueba en el sitio publicado)
 - 10.0 Unir la rama antes de desplegar (adelantada) — 2026-10-23, PR #6
+- 10.A Servidor en Render (adelantada) — 2026-10-23: https://cafeteria-api-1ej1.onrender.com (`/api/health`, `/api/health/db`, `/api/menu` y `/api/banks` responden; `/api/me` sin sesión da 401)
 
 ## Fases cerradas
 - Fase 1 — Base del repositorio (unida a main el 2026-10-23, PR #1)
