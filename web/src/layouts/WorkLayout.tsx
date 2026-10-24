@@ -37,7 +37,7 @@ function WorkMenu() {
   return (
     <Dialog.Root open={open} onOpenChange={setOpen}>
       <Dialog.Trigger asChild>
-        <Button size="icon" aria-label="Abrir menú de trabajo">
+        <Button size="icon" className="size-10" aria-label="Abrir menú de trabajo">
           <Menu strokeWidth={1.5} aria-hidden="true" />
         </Button>
       </Dialog.Trigger>
@@ -45,14 +45,14 @@ function WorkMenu() {
         <Dialog.Overlay className="fixed inset-0 z-50 bg-foreground/40" />
         <Dialog.Content
           aria-describedby={undefined}
-          className="fixed inset-y-0 left-0 z-50 flex w-72 max-w-[85vw] flex-col gap-4 bg-primary-light p-4 text-primary-foreground outline-none"
+          className="fixed inset-y-0 left-0 z-50 flex w-72 max-w-[85vw] flex-col gap-4 bg-primary p-4 text-primary-foreground outline-none"
         >
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">
               <Dialog.Title className="font-heading text-lg font-medium">
                 Panel de trabajo
               </Dialog.Title>
-              <p className="truncate text-sm text-primary-foreground/85">{me?.name}</p>
+              <p className="truncate text-sm text-primary-foreground/70">{me?.name}</p>
             </div>
             <Dialog.Close asChild>
               <Button
@@ -89,7 +89,7 @@ function WorkMenu() {
 
           <Button
             variant="destructive"
-            className="border-primary-foreground/65"
+            className="border-primary-foreground/50"
             onClick={() => void signOut()}
           >
             <LogOut strokeWidth={1.5} aria-hidden="true" />
@@ -124,7 +124,7 @@ function MenuLink({
           cn(
             'flex min-h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium transition-colors duration-150',
             isActive
-              ? 'bg-primary-foreground/10 font-semibold text-primary-foreground'
+              ? 'bg-primary-foreground/15 font-semibold text-primary-foreground'
               : 'text-primary-foreground hover:bg-primary-foreground/10',
           )
         }

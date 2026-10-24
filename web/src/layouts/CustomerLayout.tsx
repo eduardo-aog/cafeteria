@@ -22,7 +22,7 @@ export default function CustomerLayout() {
       </main>
       <nav
         aria-label="Navegación principal"
-        className="fixed inset-x-0 bottom-0 bg-primary-light text-primary-foreground"
+        className="fixed inset-x-0 bottom-0 bg-primary text-primary-foreground"
       >
         <ul className="mx-auto flex max-w-120">
           {NAV.map(({ to, label, icon: Icon }) => (
@@ -34,8 +34,8 @@ export default function CustomerLayout() {
                     // El activo va en crema pleno, en negrita y sobre un fondo suave: no depende solo del color.
                     'flex min-h-12 flex-col items-center justify-center gap-1 rounded-lg text-xs transition-colors duration-150',
                     isActive
-                      ? 'bg-primary-foreground/10 font-semibold text-primary-foreground'
-                      : 'font-medium text-primary-foreground/85',
+                      ? 'bg-primary-foreground/15 font-semibold text-primary-foreground'
+                      : 'font-medium text-primary-foreground/70',
                   )
                 }
               >
