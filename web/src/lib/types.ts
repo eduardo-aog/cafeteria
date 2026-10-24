@@ -160,3 +160,35 @@ export interface InventoryOrder {
     couponTitle: string | null
   }[]
 }
+
+// Pedido en la cola del barista o en la lista de entregados de hoy.
+export interface QueueOrder {
+  id: string
+  pickupCode: string | null
+  customerName: string
+  scannedAt: string | null
+  deliveredAt: string | null
+  items: { id: string; name: string; quantity: number }[]
+}
+
+// Respuesta de POST /cashier/scan.
+export interface ScanResult {
+  pickupCode: string | null
+  customerName: string
+  items: { id: string; name: string; quantity: number }[]
+}
+
+export interface HistoryOrder {
+  id: string
+  paidAt: string | null
+  scannedAt: string | null
+  totalCents: number | null
+  amountBsCents: number | null
+  items: {
+    id: string
+    name: string
+    quantity: number
+    lineTotalCents: number | null
+    couponTitle: string | null
+  }[]
+}
