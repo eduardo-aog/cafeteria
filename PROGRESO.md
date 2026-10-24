@@ -1,9 +1,9 @@
 # Progreso del proyecto
 
 ## Estado actual
-- Fase: 10 — Datos de demostración y despliegue (las paradas 10.0, 10.A, 10.B y 10.C se hicieron por adelantado)
-- Rama: feat/fase-10-despliegue
-- Paso: trabajo técnico terminado; esperando ⛔ PARADA 10.D — UptimeRobot (con la unión de esta rama). Faltan 10.E, 10.F (opcional y destructiva) y 10.Z
+- Fase: 10 — Datos de demostración y despliegue (la última fase; las paradas 10.0, 10.A, 10.B, 10.C y 10.D están confirmadas)
+- Rama: main (feat/fase-10-despliegue unida, PR #11)
+- Paso: esperando ⛔ PARADA 10.E — Prueba final en dispositivos reales. Faltan 10.F (opcional y destructiva) y 10.Z (cierre del proyecto)
 
 ## Paradas confirmadas
 - 0.A Requisitos previos — 2026-10-23
@@ -20,6 +20,7 @@
 - 8.Z Cierre de la Fase 8 — 2026-10-24 (probada por el usuario en https://vibecoffe.onrender.com)
 - 9.Z Cierre de la Fase 9 — 2026-10-24 (probada por el usuario en https://vibecoffe.onrender.com)
 - 7.A Teléfono como escáner — omitida por decisión del usuario (el sitio publicado ya tiene HTTPS, la cámara funciona sin la red local)
+- 10.D UptimeRobot — 2026-10-24 (monitor a `/api/health/db` cada 5 minutos; tras unir la Fase 10, el servidor y la página responden 200)
 - 10.0 Unir la rama antes de desplegar (adelantada) — 2026-10-23, PR #6
 - 10.A Servidor en Render (adelantada) — 2026-10-23: https://cafeteria-api-1ej1.onrender.com (`/api/health`, `/api/health/db`, `/api/menu` y `/api/banks` responden; `/api/me` sin sesión da 401)
 
