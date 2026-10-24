@@ -1,9 +1,9 @@
 # Progreso del proyecto
 
 ## Estado actual
-- Fase: 10 — Datos de demostración y despliegue (la última fase; las paradas 10.0, 10.A, 10.B, 10.C y 10.D están confirmadas)
-- Rama: main (feat/fase-10-despliegue unida, PR #11)
-- Paso: ⛔ PARADA 10.F decidida («no, no toques nada»: la base queda como está). Falta el cierre ⛔ PARADA 10.Z
+- Fase: 10 — cerrada. PROYECTO CERRADO el 2026-10-24: las 10 fases están unidas a `main` y desplegadas en https://vibecoffe.onrender.com
+- Rama: main
+- Paso: ninguno pendiente. Los cambios nuevos se hacen en ramas `fix/…` o `feat/…`, o directo a `main` si el usuario lo pide
 
 ## Paradas confirmadas
 - 0.A Requisitos previos — 2026-10-23
@@ -23,6 +23,7 @@
 - 10.D UptimeRobot — 2026-10-24 (monitor a `/api/health/db` cada 5 minutos; tras unir la Fase 10, el servidor y la página responden 200)
 - 10.E Prueba final en dispositivos reales — 2026-10-24 (flujo completo probado por el usuario en el sitio publicado; revisó la lista de bancos y el script del BCV)
 - 10.F Limpieza de datos — 2026-10-24: el usuario decidió NO limpiar; la base de datos conserva todos los datos de las pruebas (no se ejecutó `db:reset-demo`)
+- 10.Z Cierre del proyecto — 2026-10-24
 - 10.0 Unir la rama antes de desplegar (adelantada) — 2026-10-23, PR #6
 - 10.A Servidor en Render (adelantada) — 2026-10-23: https://cafeteria-api-1ej1.onrender.com (`/api/health`, `/api/health/db`, `/api/menu` y `/api/banks` responden; `/api/me` sin sesión da 401)
 
@@ -36,6 +37,7 @@
 - Fase 7 — Retiro y barra (unida a main el 2026-10-24; cerrada el 2026-10-24)
 - Fase 8 — Puntos y cupones (unida a main el 2026-10-24; cerrada el 2026-10-24)
 - Fase 9 — Administración y reportes (unida a main el 2026-10-24; cerrada el 2026-10-24)
+- Fase 10 — Datos de demostración y despliegue (unida a main el 2026-10-24, PR #11; cerrada el 2026-10-24)
 
 ## Decisiones menores tomadas
 - Fase 1: el repositorio de GitHub pasó a ser público (decisión del usuario, para facilitar el despliegue). Ningún `.env` ni clave está en el historial.
