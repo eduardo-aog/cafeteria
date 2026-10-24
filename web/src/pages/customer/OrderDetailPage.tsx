@@ -1,8 +1,9 @@
 import { useEffect } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { ArrowLeft, CircleCheck } from 'lucide-react'
+import { CircleCheck } from 'lucide-react'
 import { QRCodeSVG } from 'qrcode.react'
+import { BackLink } from '@/components/BackLink'
 import { ErrorBlock, LoadingBlock } from '@/components/QueryState'
 import { StatusBadge } from '@/components/StatusBadge'
 import { Button } from '@/components/ui/button'
@@ -39,13 +40,7 @@ export default function OrderDetailPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <Link
-        to="/pedidos"
-        className="inline-flex min-h-11 items-center gap-1 self-start text-sm font-medium text-primary"
-      >
-        <ArrowLeft className="size-5" strokeWidth={1.5} aria-hidden="true" />
-        Volver a pedidos
-      </Link>
+      <BackLink to="/pedidos" />
 
       {inventory.isPending && <LoadingBlock />}
       {inventory.isError && (

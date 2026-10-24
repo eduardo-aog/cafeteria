@@ -4,6 +4,7 @@ import { z } from 'zod'
 import { toast } from 'sonner'
 import { useNavigate, useParams } from 'react-router-dom'
 import { FieldError } from '@/components/AuthShell'
+import { BackLink } from '@/components/BackLink'
 import { ErrorBlock, LoadingBlock } from '@/components/QueryState'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -50,14 +51,20 @@ export default function RewardFormPage() {
   const rewards = useAdminRewards()
 
   if (!id) return <RewardForm />
-  if (rewards.isPending) return <LoadingBlock />
-  if (rewards.isError) {
-    return <ErrorBlock message={rewards.error.message} onRetry={() => void rewards.refetch()} />
-  }
-  const reward = rewards.data.rewards.find((r) => r.id === id)
-  if (!reward)
-    return <p className="py-12 text-center text-muted-foreground">Recompensa no encontrada.</p>
-  return <RewardForm reward={reward} />
+  const reward = rewards.data?.rewards.find((r) => r.id === id)
+  return (
+    <div className="flex flex-col gap-6">
+      <BackLink to="/trabajo/recompensas" />
+      {rewards.isPending && <LoadingBlock />}
+      {rewards.isError && (
+        <ErrorBlock message={rewards.error.message} onRetry={() => void rewards.refetch()} />
+      )}
+      {rewards.isSuccess && !reward && (
+        <p className="py-12 text-center text-muted-foreground">Recompensa no encontrada.</p>
+      )}
+      {reward && <RewardForm reward={reward} />}
+    </div>
+  )
 }
 
 function RewardForm({ reward }: { reward?: Reward }) {
@@ -106,6 +113,7 @@ function RewardForm({ reward }: { reward?: Reward }) {
 
   return (
     <div className="flex flex-col gap-6">
+      {!reward && <BackLink to="/trabajo/recompensas" />}
       <h1 className="text-2xl">{reward ? 'Editar recompensa' : 'Nueva recompensa'}</h1>
       <form onSubmit={handleSubmit(onSubmit)} noValidate className="flex flex-col gap-4">
         <div className="flex flex-col gap-2">

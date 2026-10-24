@@ -5,6 +5,7 @@ import { z } from 'zod'
 import { toast } from 'sonner'
 import { useNavigate, useParams } from 'react-router-dom'
 import { FieldError } from '@/components/AuthShell'
+import { BackLink } from '@/components/BackLink'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
 import { ProductImage } from '@/components/ProductImage'
 import { ErrorBlock, LoadingBlock } from '@/components/QueryState'
@@ -47,14 +48,20 @@ export default function ProductFormPage() {
   const products = useManagerProducts()
 
   if (!id) return <ProductForm />
-  if (products.isPending) return <LoadingBlock />
-  if (products.isError) {
-    return <ErrorBlock message={products.error.message} onRetry={() => void products.refetch()} />
-  }
-  const product = products.data.products.find((p) => p.id === id)
-  if (!product)
-    return <p className="py-12 text-center text-muted-foreground">Producto no encontrado.</p>
-  return <ProductForm product={product} />
+  const product = products.data?.products.find((p) => p.id === id)
+  return (
+    <div className="flex flex-col gap-6">
+      <BackLink to="/trabajo/catalogo" />
+      {products.isPending && <LoadingBlock />}
+      {products.isError && (
+        <ErrorBlock message={products.error.message} onRetry={() => void products.refetch()} />
+      )}
+      {products.isSuccess && !product && (
+        <p className="py-12 text-center text-muted-foreground">Producto no encontrado.</p>
+      )}
+      {product && <ProductForm product={product} />}
+    </div>
+  )
 }
 
 function ProductForm({ product }: { product?: Product }) {
@@ -98,6 +105,7 @@ function ProductForm({ product }: { product?: Product }) {
 
   return (
     <div className="flex flex-col gap-6">
+      {!product && <BackLink to="/trabajo/catalogo" />}
       <h1 className="text-2xl">{product ? 'Editar producto' : 'Nuevo producto'}</h1>
 
       <form onSubmit={handleSubmit(onSubmit)} noValidate className="flex flex-col gap-4">

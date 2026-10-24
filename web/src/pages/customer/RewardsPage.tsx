@@ -1,6 +1,6 @@
-import { Link } from 'react-router-dom'
-import { ArrowLeft, Star } from 'lucide-react'
+import { Star } from 'lucide-react'
 import { toast } from 'sonner'
+import { BackLink } from '@/components/BackLink'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
 import { EmptyBlock, ErrorBlock, LoadingBlock } from '@/components/QueryState'
 import { Button } from '@/components/ui/button'
@@ -16,13 +16,7 @@ export default function RewardsPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <Link
-        to="/puntos"
-        className="inline-flex min-h-11 items-center gap-1 self-start text-sm font-medium text-primary"
-      >
-        <ArrowLeft className="size-5" strokeWidth={1.5} aria-hidden="true" />
-        Volver a puntos
-      </Link>
+      <BackLink to="/puntos" />
       <h1 className="text-2xl">Recompensas</h1>
 
       {rewards.isPending && <LoadingBlock />}
