@@ -8,9 +8,10 @@ export interface ApiErrorDetail {
 export class ApiError extends Error {
   code: string
   status: number
-  details?: ApiErrorDetail[]
+  // Datos extra del servidor: campos inválidos (validación) o líneas afectadas (ITEMS_UNAVAILABLE).
+  details?: unknown
 
-  constructor(code: string, message: string, status: number, details?: ApiErrorDetail[]) {
+  constructor(code: string, message: string, status: number, details?: unknown) {
     super(message)
     this.code = code
     this.status = status
@@ -49,7 +50,7 @@ export async function api<T>(path: string, { method = 'GET', body }: ApiOptions 
   if (response.ok) return (await response.json()) as T
 
   const payload = (await response.json().catch(() => null)) as {
-    error?: { code?: string; message?: string; details?: ApiErrorDetail[] }
+    error?: { code?: string; message?: string; details?: unknown }
   } | null
   const error = new ApiError(
     payload?.error?.code ?? 'UNKNOWN_ERROR',

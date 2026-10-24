@@ -1,8 +1,10 @@
 import { Prisma } from '@prisma/client'
 import { checkoutExpiry, exceedsProductLimit } from '../domain/checkout.js'
-import { lineTotal, usdToBsCents } from '../domain/money.js'
+import { usdToBsCents } from '../domain/money.js'
+import { priceLine } from '../domain/pricing.js'
 import { describeSchedule, isStoreOpen } from '../domain/schedule.js'
 import { prisma } from '../lib/prisma.js'
+import { TX_OPTIONS } from '../lib/tx.js'
 import { AppError } from '../middleware/error.js'
 import { expireStaleCheckouts } from './checkoutExpiration.js'
 import { getProduct } from './products.js'
@@ -11,15 +13,15 @@ import { getSettings } from './settings.js'
 
 // Cada viaje a la base de datos cuesta tiempo, así que las relaciones se cargan con un JOIN (una sola
 // consulta) y las operaciones arman el resultado en memoria en vez de volver a leer.
-const JOIN = { relationLoadStrategy: 'join' } as const
+export const JOIN = { relationLoadStrategy: 'join' } as const
 
-const ORDER_INCLUDE = {
-  items: { include: { product: true }, orderBy: { createdAt: 'asc' } },
+export const ORDER_INCLUDE = {
+  items: { include: { product: true, coupon: true }, orderBy: { createdAt: 'asc' } },
   // Último rechazo, para que el cliente corrija y reenvíe (8.6).
   submissions: { where: { status: 'REJECTED' }, orderBy: { submittedAt: 'desc' }, take: 1 },
 } satisfies Prisma.OrderInclude
 
-type OrderWithItems = Prisma.OrderGetPayload<{ include: typeof ORDER_INCLUDE }>
+export type OrderWithItems = Prisma.OrderGetPayload<{ include: typeof ORDER_INCLUDE }>
 
 const EXPIRED_VISIBLE_MS = 24 * 60 * 60 * 1000
 
@@ -33,10 +35,11 @@ export function toCheckoutDto(order: OrderWithItems, rate: Rate | null) {
   const toBs = (cents: number) => (frozenRate === null ? null : usdToBsCents(cents, frozenRate))
 
   const items = order.items.map((item) => {
-    const unitPriceCents = item.unitPriceCents ?? item.product.priceCents
-    const discountCents = item.discountCents ?? 0
-    const lineTotalCents =
-      item.lineTotalCents ?? lineTotal(unitPriceCents * item.quantity, discountCents)
+    // Mientras no se envía la referencia, el precio y el descuento del cupón se calculan con el catálogo vigente.
+    const live = priceLine(item.product.priceCents, item.quantity, item.coupon)
+    const unitPriceCents = item.unitPriceCents ?? live.unitPriceCents
+    const discountCents = item.discountCents ?? live.discountCents
+    const lineTotalCents = item.lineTotalCents ?? live.lineTotalCents
     return {
       id: item.id,
       productId: item.productId,
@@ -47,6 +50,8 @@ export function toCheckoutDto(order: OrderWithItems, rate: Rate | null) {
       isActive: item.product.isActive,
       quantity: item.quantity,
       unitPriceCents,
+      discountCents,
+      couponTitle: item.coupon?.title ?? null,
       lineTotalCents,
       lineTotalBsCents: toBs(lineTotalCents),
     }
@@ -99,22 +104,18 @@ export async function listCheckouts(userId: string) {
 
 // Todas las operaciones sobre los checkouts de un cliente se serializan con un bloqueo de
 // transacción: así no se crean dos checkouts abiertos ni se pasa del tope con dos peticiones a la vez.
-async function withCustomerLock<T>(
+export async function withCustomerLock<T>(
   userId: string,
   work: (tx: Prisma.TransactionClient) => Promise<T>,
 ) {
-  return prisma.$transaction(
-    async (tx) => {
-      await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${userId}, 0))`
-      return work(tx)
-    },
-    // Con connection_limit=1 las peticiones simultáneas esperan su turno: se amplían las esperas por defecto (2 s y 5 s).
-    { maxWait: 15_000, timeout: 20_000 },
-  )
+  return prisma.$transaction(async (tx) => {
+    await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${userId}, 0))`
+    return work(tx)
+  }, TX_OPTIONS)
 }
 
 // CREATED con el plazo vencido que la tarea o una lectura aún no han pasado a EXPIRED.
-const isStale = (order: { status: string; expiresAt: Date | null }, now: Date) =>
+export const isStale = (order: { status: string; expiresAt: Date | null }, now: Date) =>
   order.status === 'CREATED' && order.expiresAt !== null && order.expiresAt < now
 
 const unitsOf = (order: OrderWithItems, productId: string, excludeItemId?: string) =>
@@ -181,7 +182,7 @@ export async function addItem(userId: string, productId: string, quantity: numbe
           ...open.items,
           await tx.orderItem.create({
             data: { orderId: open.id, productId, quantity },
-            include: { product: true },
+            include: { product: true, coupon: true },
           }),
         ]
     if (line) {

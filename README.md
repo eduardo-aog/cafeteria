@@ -89,4 +89,38 @@ Cada consulta a Supabase es un viaje de red. Si tu conexión es lenta (por ejemp
 - Prueba con la VPN apagada (las migraciones ya lo requieren por el puerto 5432).
 - Opcional: sube `connection_limit` en `DATABASE_URL` de `api/.env` (por ejemplo `connection_limit=5`) para que las consultas en paralelo corran en paralelo. Con `connection_limit=1` se hacen una tras otra.
 - Con `npm run dev` en `api/`, cada petición imprime su duración (`MÉTODO ruta estado ms`).
+- `npm test` en `api/` incluye una prueba de concurrencia contra la base de datos real (`verification.concurrency.test.ts`). Se omite si no existe `api/.env` y tarda unos segundos por cada viaje a la base (con VPN, ~35 s).
+
+## Despliegue en Render
+
+Render despliega desde `main`: cada unión a `main` redespliega el servidor y la página. Región **Virginia (US East)**, la misma que Supabase.
+
+**Servidor** (*Web Service*, plan Free)
+
+| Campo | Valor |
+|---|---|
+| Name | `cafeteria-api` |
+| Branch | `main` |
+| Root Directory | `api` |
+| Build Command | `npm ci --include=dev && npx prisma generate && npm run build` |
+| Start Command | `npx prisma migrate deploy && node dist/index.js` |
+| Health Check Path | `/api/health` |
+
+Variables de entorno: las de `api/.env` **menos** `SEED_*` y `PORT` (Render asigna el puerto), con `NODE_ENV=production` y `WEB_ORIGIN` igual a la URL de la página, sin `/` al final.
+
+**Página** (*Static Site*)
+
+| Campo | Valor |
+|---|---|
+| Name | `cafeteria-web` |
+| Branch | `main` |
+| Root Directory | `web` |
+| Build Command | `npm ci --include=dev && npm run build` |
+| Publish Directory | `dist` |
+
+Variables: `VITE_API_URL` (URL del servidor + `/api`), `VITE_SUPABASE_URL` y `VITE_SUPABASE_ANON_KEY`. En «Redirects/Rewrites» añade `/*` → `/index.html` con acción **Rewrite**. Si cambia una variable `VITE_*` hay que redesplegar la página, porque Vite las incrusta al compilar.
+
+El seed no corre en Render: se ejecutó desde tu computador sobre la misma base de datos. Las migraciones sí se aplican al arrancar (`prisma migrate deploy`).
+
+El plan gratuito suspende el servidor tras un rato sin tráfico y la primera visita tarda en responder. Un monitor de UptimeRobot a `/api/health/db` cada 5 minutos lo evita y mantiene activo el proyecto gratuito de Supabase.
 

@@ -11,10 +11,14 @@ import LoginPage from '@/pages/auth/LoginPage'
 import RegisterPage from '@/pages/auth/RegisterPage'
 import AccountPage from '@/pages/customer/AccountPage'
 import CheckoutPage from '@/pages/customer/CheckoutPage'
+import OrdersPage from '@/pages/customer/OrdersPage'
+import PaymentPage from '@/pages/customer/PaymentPage'
+import PointsPage from '@/pages/customer/PointsPage'
 import MenuPage from '@/pages/customer/MenuPage'
 import ProductPage from '@/pages/customer/ProductPage'
 import CatalogPage from '@/pages/staff/CatalogPage'
 import ProductFormPage from '@/pages/staff/ProductFormPage'
+import VerificationPage from '@/pages/staff/VerificationPage'
 import { STAFF_SECTIONS } from '@/pages/staff/sections'
 import WorkHome from '@/pages/staff/WorkHome'
 
@@ -45,8 +49,9 @@ export default function App() {
                 <Route path="/menu" element={<MenuPage />} />
                 <Route path="/producto/:id" element={<ProductPage />} />
                 <Route path="/checkout" element={<CheckoutPage />} />
-                <Route path="/pedidos" element={<PagePlaceholder title="Pedidos" />} />
-                <Route path="/puntos" element={<PagePlaceholder title="Puntos" />} />
+                <Route path="/pedidos" element={<OrdersPage />} />
+                <Route path="/pagar/:id" element={<PaymentPage />} />
+                <Route path="/puntos" element={<PointsPage />} />
                 <Route path="/cuenta" element={<AccountPage />} />
               </Route>
             </Route>
@@ -59,7 +64,12 @@ export default function App() {
                   <Route path="catalogo/nuevo" element={<ProductFormPage />} />
                   <Route path="catalogo/:id" element={<ProductFormPage />} />
                 </Route>
-                {STAFF_SECTIONS.filter((section) => section.path !== 'catalogo').map((section) => (
+                <Route element={<RequirePerm perms={['cashier']} />}>
+                  <Route path="verificacion" element={<VerificationPage />} />
+                </Route>
+                {STAFF_SECTIONS.filter(
+                  (section) => section.path !== 'catalogo' && section.path !== 'verificacion',
+                ).map((section) => (
                   <Route key={section.path} element={<RequirePerm perms={section.perms} />}>
                     <Route
                       path={section.path}

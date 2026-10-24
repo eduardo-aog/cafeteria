@@ -7,6 +7,8 @@ export class AppError extends Error {
     public code: string,
     message: string,
     public status: number,
+    // Datos extra para la web (por ejemplo, las líneas con productos no disponibles).
+    public details?: unknown,
   ) {
     super(message)
   }
@@ -18,7 +20,13 @@ export const notFound: RequestHandler = (_req, res) => {
 
 export const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
   if (err instanceof AppError) {
-    res.status(err.status).json({ error: { code: err.code, message: err.message } })
+    res.status(err.status).json({
+      error: {
+        code: err.code,
+        message: err.message,
+        ...(err.details !== undefined && { details: err.details }),
+      },
+    })
     return
   }
   if (err instanceof ZodError) {

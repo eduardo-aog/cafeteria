@@ -4,6 +4,7 @@ import { isStoreOpen, nextOpening } from '../domain/schedule.js'
 import { requireAuth } from '../middleware/auth.js'
 import { AppError } from '../middleware/error.js'
 import { requireCustomer } from '../middleware/permissions.js'
+import { getBanks } from '../services/banks.js'
 import { getProduct, getProducts, sortProducts, toProductDto } from '../services/products.js'
 import { getLatestRate } from '../services/rates.js'
 import { getSettings } from '../services/settings.js'
@@ -48,4 +49,9 @@ menuRouter.get('/products/:id', requireAuth, requireCustomer, async (req, res) =
     product: toProductDto(product, rate),
     rate: rateDto(rate),
   })
+})
+
+// Lista fija de bancos (8.6.1): pública, para el formulario de referencia.
+menuRouter.get('/banks', async (_req, res) => {
+  res.json({ banks: (await getBanks()).map((b) => ({ code: b.code, name: b.name })) })
 })

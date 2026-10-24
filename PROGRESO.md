@@ -1,9 +1,9 @@
 # Progreso del proyecto
 
 ## Estado actual
-- Fase: 5 — Checkout
-- Rama: feat/fase-05-checkout
-- Paso: esperando ⛔ PARADA 5.Z — Cierre de la Fase 5
+- Fase: 6 — Pago y verificación
+- Rama: feat/fase-06-pago
+- Paso: trabajo técnico de la Fase 6 terminado; el usuario decidió desplegar antes de probar: esperando ⛔ PARADA 10.0 (adelantada) — Unir la rama antes de desplegar. Después 10.A, 10.B y 10.C, y entonces el cierre ⛔ PARADA 6.Z sobre el sitio publicado
 
 ## Paradas confirmadas
 - 0.A Requisitos previos — 2026-10-23
@@ -13,12 +13,14 @@
 - 2.Z Cierre de la Fase 2 — 2026-10-23
 - 3.Z Cierre de la Fase 3 — 2026-10-23
 - 4.Z Cierre de la Fase 4 — 2026-10-23
+- 5.Z Cierre de la Fase 5 — 2026-10-23
 
 ## Fases cerradas
 - Fase 1 — Base del repositorio (unida a main el 2026-10-23, PR #1)
 - Fase 2 — Esquema de datos (unida a main el 2026-10-23, PR #2)
 - Fase 3 — Autenticación y permisos (unida a main el 2026-10-23, PR #3)
 - Fase 4 — Dominio, tasa BCV, catálogo y menú (unida a main el 2026-10-23, PR #4)
+- Fase 5 — Checkout (unida a main el 2026-10-23, PR #5)
 
 ## Decisiones menores tomadas
 - Fase 1: el repositorio de GitHub pasó a ser público (decisión del usuario, para facilitar el despliegue). Ningún `.env` ni clave está en el historial.
@@ -70,6 +72,17 @@
 - Fase 5 (ajustes de UI pedidos por el usuario, sustituyen lo que dicen 10.6 y 10.3 sobre esos elementos): (1) la barra inferior del cliente es verde oscuro (`--primary`) con texto crema; el elemento activo va en crema pleno, en negrita y sobre un fondo crema al 15 %, y los demás en crema al 70 %; (2) el botón ☰ y el panel del menú de trabajo son verde oscuro con texto crema; (3) todos los botones «Cerrar sesión» (cuenta del cliente, panel de trabajo y pantalla de error de cuenta) son rojos (`destructive`); en el panel verde llevan un borde claro para cumplir 3:1 en el límite del control; (4) el menú del cliente tiene un filtro «Todo · Café · Bebidas · Postres» (por defecto «Todo»; no se guarda); (5) los botones de vista (1 o 2 columnas) bajan de 44 a 36 px, con iconos de 18 px: es la única excepción a los 44 px mínimos de 10.1, a petición del usuario.
 - Contrastes añadidos (AA): crema / verde 11,74:1; crema al 70 % / verde (elementos inactivos de la barra y nombre en el panel) 6,64:1; crema / verde con 15 % de crema (elemento activo del panel) 7,44:1; crema / rojo (Cerrar sesión) 7,41:1.
 - Fase 5: se probó un verde más claro (`--primary-light`) para la barra inferior y el menú de trabajo y no gustó al usuario: se volvió a `--primary` y se eliminó `--primary-light` de `index.css`. Se restauraron las opacidades de los ajustes anteriores (texto inactivo 70 %, elemento activo con crema al 15 %, borde del botón «Cerrar sesión» del panel 50 %), con los contrastes ya anotados (6,64:1, 7,44:1 y 7,41:1). El botón ☰ de la cabecera baja de 44 a 40 px a petición del usuario.
+- Fase 6: errores nuevos de la API. 409: `CHECKOUT_NOT_PAYABLE`, `CHECKOUT_BLOCKED` (el mensaje trae la hora de desbloqueo en Caracas), `ITEMS_UNAVAILABLE` (con `details: [{ itemId, name, reason }]`), `COUPON_NOT_VALID`, `PAID_LIMIT_REACHED`, `PAYMENT_NOT_CONFIGURED`, `NOTHING_TO_PAY` y `NOT_FREE`, `DUPLICATE_REFERENCE`, `ALREADY_REVIEWED` («Ya verificado por [nombre]»). 429: `TOO_MANY_SUBMISSIONS`. 400: `INVALID_BANK`. 503: `RATE_UNAVAILABLE` (sin tasa del BCV). `AppError` admite un campo `details` opcional.
+- Fase 6: el cajero confirma con un diálogo antes de **Aprobar** (acreditar puntos no se puede deshacer; 10.1 pide confirmar lo irreversible). **Rechazar** abre el diálogo de motivo y nota de 10.4. Tras aprobar o rechazar, la tarjeta sale de la cola al instante y vuelve si el servidor lo rechaza.
+- Fase 6: para que la prueba 6.Z pueda ver «Pagado» y el saldo, se adelantaron versiones mínimas de `/pedidos` (lista de pedidos pagados con sus montos y puntos, vía `GET /orders/inventory`, sin QR ni código: eso es de la Fase 7) y de `/puntos` (solo el saldo, el resto es de la Fase 8). `GET /banks` (público) se añadió porque el formulario de pago lo necesita.
+- Fase 6: la lógica de cupones de 8.6 ya está implementada aunque los cupones se crean en la Fase 8: precio y descuento por línea al congelar (`domain/pricing.ts`), validación `RESERVED` del mismo usuario, `USED` al aprobar o al confirmar un pedido gratis, y `confirm-free`. Se probó con cupones insertados a mano en la base (porcentaje, producto gratis y ajeno), que se borraron después.
+- Fase 6: las líneas se congelan con una sola sentencia SQL (`UPDATE … FROM (VALUES …)`), no una por línea. El código de retiro se comprueba como libre antes de usarlo (un choque dentro de una transacción de Postgres la aborta). La aprobación hace unas 10 consultas; las transacciones usan `TX_OPTIONS` (espera de 15 s y límite de 30 s).
+- Fase 6: bug propio corregido: `checkoutRouter.use(requireAuth, requireCustomer)` sin prefijo también atrapaba `/api/cashier/*` (montado después) y daba 403 `STAFF_CANNOT_BUY` a los cajeros; ahora solo cubre `/checkout` y `/checkouts`.
+- Fase 6: prueba automatizada de concurrencia `api/src/services/verification.concurrency.test.ts`: dos cajeros aprueban a la vez el mismo envío (y otro caso, aprobar contra rechazar) con un pool de 5 conexiones para que la carrera sea real. Solo una gana, la otra recibe `ALREADY_REVIEWED`, los puntos se acreditan una vez y el registro suma una entrada. Se omite si no existe `api/.env`. Usa fixtures fijos (usuarios `concurrency-*@example.com`); como `VerificationLog` es inmutable, cada ejecución deja una entrada nueva en él. Con la VPN activa tarda ~35 s, así que `npm test` en `api/` tarda lo mismo.
+- Fase 6: las pruebas con Supabase real dejaron pedidos pagados de cuentas de prueba (`e2e6-…`, `ui7-…`) que no se pueden borrar (el registro de verificación es inmutable y bloquea el borrado en cascada). Sus cuentas de Auth se eliminaron; los datos se limpian en la PARADA 10.F. Esos pedidos contarán en los reportes de ventas hasta esa limpieza.
+- Fase 6: con el navegador automatizado no se pueden verificar `COPIAR TODO` ni `PEGAR` (no concede permisos de portapapeles): sí se comprobó el aviso cuando no hay permiso, el filtro de solo dígitos, las validaciones del formulario y todo el flujo. La copia y el pegado reales se prueban en 6.Z con el teléfono.
+- Fase 6 (decisión del usuario, 2026-10-23): no se prueba con `localhost`/teléfono en la red local; se despliega primero en Render y las pruebas de la Fase 6 se hacen sobre el sitio publicado. Por eso la **PARADA 6.A (preparar el teléfono) se omite** y se adelantan de la Fase 10 las paradas 10.0 (unir la rama a `main`), 10.A (servidor), 10.B (página) y 10.C (cruzar las URLs). Quedan para la Fase 10 la 10.D (UptimeRobot), la 10.E y 10.F. Antes de pedir la 10.0 se comprobó: `.node-version` y `package-lock.json` en ambas carpetas, `npm ci --dry-run` sin errores, y la API compilada en modo producción (`node dist/index.js` con `NODE_ENV=production`): `/api/health`, `/api/health/db` y `/api/menu` responden y CORS devuelve `WEB_ORIGIN`. El README documenta las tablas de Render (sin `PORT`: Render asigna el puerto).
+- Fase 6: las pruebas del cierre 6.Z («copiar y pegar» en el teléfono, aprobar desde el cajero, bloqueo por 3 rechazos, referencia repetida y doble aprobación) se harán con las URLs de Render.
 
 ## Contraste de la paleta (10.6, mínimo AA)
 | Pareja | Ratio |
