@@ -11,7 +11,7 @@ import { useAddToCheckout } from '@/hooks/useCheckouts'
 import { ViewToggle } from '@/components/ViewToggle'
 import { gridColumnsClass, useGridColumns } from '@/hooks/useGridColumns'
 import { useMenu } from '@/hooks/useMenu'
-import { describeOpening, formatBs, formatShortDate } from '@/lib/format'
+import { describeOpening, formatBs } from '@/lib/format'
 import { CATEGORY_LABELS, type Category, type Product } from '@/lib/types'
 
 const CATEGORIES: Category[] = ['CAFE', 'BEBIDAS', 'POSTRES']
@@ -38,7 +38,16 @@ export default function MenuPage() {
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between gap-3">
         <h1 className="text-2xl">Menú</h1>
-        <ViewToggle value={columns} onChange={setColumns} />
+        <div className="flex items-center gap-4">
+          {rate && (
+            <p className="text-sm leading-tight text-muted-foreground">
+              Tasa del día:
+              <br />
+              <span className="font-semibold text-foreground">{formatBs(rate.rateHundredths)}</span>
+            </p>
+          )}
+          <ViewToggle value={columns} onChange={setColumns} />
+        </div>
       </div>
 
       <SegmentedControl
@@ -79,12 +88,6 @@ export default function MenuPage() {
           </section>
         )
       })}
-
-      {rate && (
-        <p className="text-center text-sm text-muted-foreground">
-          Tasa BCV del {formatShortDate(rate.bcvDate)}: {formatBs(rate.rateHundredths)}
-        </p>
-      )}
     </div>
   )
 }

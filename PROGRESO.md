@@ -3,7 +3,7 @@
 ## Estado actual
 - Fase: 10 — Datos de demostración y despliegue (la última fase; las paradas 10.0, 10.A, 10.B, 10.C y 10.D están confirmadas)
 - Rama: main (feat/fase-10-despliegue unida, PR #11)
-- Paso: esperando la decisión de ⛔ PARADA 10.F — Limpieza de datos (opcional y destructiva; solo con «confirmo»). Falta 10.Z (cierre del proyecto)
+- Paso: ⛔ PARADA 10.F decidida («no, no toques nada»: la base queda como está). Falta el cierre ⛔ PARADA 10.Z
 
 ## Paradas confirmadas
 - 0.A Requisitos previos — 2026-10-23
@@ -22,6 +22,7 @@
 - 7.A Teléfono como escáner — omitida por decisión del usuario (el sitio publicado ya tiene HTTPS, la cámara funciona sin la red local)
 - 10.D UptimeRobot — 2026-10-24 (monitor a `/api/health/db` cada 5 minutos; tras unir la Fase 10, el servidor y la página responden 200)
 - 10.E Prueba final en dispositivos reales — 2026-10-24 (flujo completo probado por el usuario en el sitio publicado; revisó la lista de bancos y el script del BCV)
+- 10.F Limpieza de datos — 2026-10-24: el usuario decidió NO limpiar; la base de datos conserva todos los datos de las pruebas (no se ejecutó `db:reset-demo`)
 - 10.0 Unir la rama antes de desplegar (adelantada) — 2026-10-23, PR #6
 - 10.A Servidor en Render (adelantada) — 2026-10-23: https://cafeteria-api-1ej1.onrender.com (`/api/health`, `/api/health/db`, `/api/menu` y `/api/banks` responden; `/api/me` sin sesión da 401)
 
@@ -120,6 +121,7 @@
 - Fase 10: el seed ya cumplía la sección 15 (se comprobó con una consulta: Settings con los datos de cobro de ejemplo, 26 bancos, 14 productos, 4 recompensas, las 5 cuentas, tasa BCV). Se añadió `npm run db:reset-demo` (`api/scripts/db-reset-demo.ts`) para la PARADA 10.F: sin `-- --confirm` solo muestra lo que borraría (pedidos, envíos, movimientos, cupones, cuentas de Auth e imágenes del bucket) y no cambia nada; con `-- --confirm` ejecuta `prisma migrate reset --force --skip-seed`, borra todas las cuentas de Supabase Auth, vacía el bucket y vuelve a correr el seed (`-- --with-sales` añade las ventas históricas). Se niega con `NODE_ENV=production`. Solo se probó el simulacro: la ejecución real queda para la 10.F, con tu «confirmo». `migrate reset` usa `DIRECT_URL` (puerto 5432), así que con la VPN activa fallará.
 - Fase 10 (repaso de teléfono, 360×740, 24 pantallas de los 5 roles con un recorrido automático): ningún desborde horizontal, ningún texto en inglés ni sin traducir, estados de carga, vacío y error presentes en todas las listas. Hallazgos corregidos: los enlaces «Regístrate» e «Inicia sesión» (17 px) y el nombre del local en el panel de trabajo (28 px) pasan a 44 px de alto. El botón ☰ queda en 40 px y los botones de «Vista» en 36 px por decisión del usuario.
 - Fase 10: modo producción comprobado en local: `npm run build` y `node dist/index.js` con `NODE_ENV=production` (salud, base de datos, menú y bancos responden 200, `/api/me` sin sesión 401, sin los avisos de tiempos de desarrollo) y `npm run build` + `npm run preview` de la web (rutas internas, imágenes). README reescrito: estructura, variables, base de datos y cuentas de demostración, scripts, pruebas, teléfono en red local, despliegue en Render con UptimeRobot, rendimiento y solución de problemas.
+- Cambio directo a `main` pedido por el usuario (2026-10-24, sin rama ni unión): la tasa del día pasa del pie del menú a la parte superior del catálogo, a la izquierda de «Vista», con el texto «Tasa del día:» y, en la línea de abajo, el valor en bolívares (por ejemplo, `Bs 887,30`). Ya no se muestra la fecha de la tasa (antes: «Tasa BCV del 27/10: Bs 887,30»); el valor sigue siendo la tasa vigente del servidor.
 
 ## Contraste de la paleta (10.6, mínimo AA)
 | Pareja | Ratio |
