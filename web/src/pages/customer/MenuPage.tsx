@@ -1,8 +1,10 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Clock, LoaderCircle, Plus } from 'lucide-react'
 import { Price } from '@/components/Price'
 import { ProductImage } from '@/components/ProductImage'
 import { EmptyBlock, ErrorBlock, LoadingBlock } from '@/components/QueryState'
+import { SegmentedControl } from '@/components/SegmentedControl'
 import { StatusBadge } from '@/components/StatusBadge'
 import { Button } from '@/components/ui/button'
 import { useAddToCheckout } from '@/hooks/useCheckouts'
@@ -14,9 +16,17 @@ import { CATEGORY_LABELS, type Category, type Product } from '@/lib/types'
 
 const CATEGORIES: Category[] = ['CAFE', 'BEBIDAS', 'POSTRES']
 
+type CategoryFilter = 'ALL' | Category
+
+const CATEGORY_FILTERS: { value: CategoryFilter; label: string }[] = [
+  { value: 'ALL', label: 'Todo' },
+  ...CATEGORIES.map((category) => ({ value: category, label: CATEGORY_LABELS[category] })),
+]
+
 export default function MenuPage() {
   const menu = useMenu()
   const [columns, setColumns] = useGridColumns()
+  const [filter, setFilter] = useState<CategoryFilter>('ALL')
 
   if (menu.isPending) return <LoadingBlock />
   if (menu.isError)
@@ -31,6 +41,13 @@ export default function MenuPage() {
         <ViewToggle value={columns} onChange={setColumns} />
       </div>
 
+      <SegmentedControl
+        label="Filtrar por tipo"
+        value={filter}
+        options={CATEGORY_FILTERS}
+        onChange={setFilter}
+      />
+
       {!store.isOpen && (
         <div className="flex items-start gap-2 rounded-lg bg-secondary p-3 text-sm text-secondary-foreground">
           <Clock className="mt-0.5 size-5 shrink-0" strokeWidth={1.5} aria-hidden="true" />
@@ -42,8 +59,11 @@ export default function MenuPage() {
       )}
 
       {products.length === 0 && <EmptyBlock>Aún no hay productos en el menú.</EmptyBlock>}
+      {products.length > 0 && filter !== 'ALL' && !products.some((p) => p.category === filter) && (
+        <EmptyBlock>No hay productos en esta categoría.</EmptyBlock>
+      )}
 
-      {CATEGORIES.map((category) => {
+      {CATEGORIES.filter((category) => filter === 'ALL' || category === filter).map((category) => {
         const items = products.filter((p) => p.category === category)
         if (items.length === 0) return null
         return (

@@ -27,13 +27,13 @@ export function ViewToggle({
             aria-pressed={value === option}
             onClick={() => onChange(option)}
             className={cn(
-              'flex size-11 items-center justify-center transition-colors duration-150 outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset',
+              'flex size-9 items-center justify-center transition-colors duration-150 outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset',
               value === option
                 ? 'bg-primary text-primary-foreground'
                 : 'bg-card text-foreground hover:bg-accent',
             )}
           >
-            <Icon className="size-5" strokeWidth={1.5} aria-hidden="true" />
+            <Icon className="size-4.5" strokeWidth={1.5} aria-hidden="true" />
           </button>
         ))}
       </div>
