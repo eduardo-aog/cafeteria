@@ -2,8 +2,8 @@
 
 ## Estado actual
 - Fase: 6 — Pago y verificación
-- Rama: main (la rama feat/fase-06-pago ya está unida, PR #6)
-- Paso: esperando ⛔ PARADA 10.B — Página en Render (adelantada). Falta el cierre ⛔ PARADA 6.Z, que se hará sobre el sitio publicado
+- Rama: main (feat/fase-06-pago unida, PR #6; fix/nombre-vibecoffe unida, PR #7)
+- Paso: esperando ⛔ PARADA 6.Z — Cierre de la Fase 6, con pruebas sobre https://vibecoffe.onrender.com
 
 ## Paradas confirmadas
 - 0.A Requisitos previos — 2026-10-23
