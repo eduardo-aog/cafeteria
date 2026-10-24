@@ -1,9 +1,9 @@
 # Progreso del proyecto
 
 ## Estado actual
-- Fase: 5 — Checkout
-- Rama: feat/fase-05-checkout
-- Paso: esperando ⛔ PARADA 5.Z — Cierre de la Fase 5
+- Fase: 5 — cerrada. Siguiente: Fase 6 — Pago y verificación
+- Rama: main
+- Paso: iniciando la Fase 6
 
 ## Paradas confirmadas
 - 0.A Requisitos previos — 2026-10-23
@@ -13,12 +13,14 @@
 - 2.Z Cierre de la Fase 2 — 2026-10-23
 - 3.Z Cierre de la Fase 3 — 2026-10-23
 - 4.Z Cierre de la Fase 4 — 2026-10-23
+- 5.Z Cierre de la Fase 5 — 2026-10-23
 
 ## Fases cerradas
 - Fase 1 — Base del repositorio (unida a main el 2026-10-23, PR #1)
 - Fase 2 — Esquema de datos (unida a main el 2026-10-23, PR #2)
 - Fase 3 — Autenticación y permisos (unida a main el 2026-10-23, PR #3)
 - Fase 4 — Dominio, tasa BCV, catálogo y menú (unida a main el 2026-10-23, PR #4)
+- Fase 5 — Checkout (unida a main el 2026-10-23, PR #5)
 
 ## Decisiones menores tomadas
 - Fase 1: el repositorio de GitHub pasó a ser público (decisión del usuario, para facilitar el despliegue). Ningún `.env` ni clave está en el historial.
