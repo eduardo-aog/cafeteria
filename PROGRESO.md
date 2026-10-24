@@ -1,9 +1,9 @@
 # Progreso del proyecto
 
 ## Estado actual
-- Fase: 8 — Puntos y cupones
-- Rama: feat/fase-08-puntos
-- Paso: esperando ⛔ PARADA 8.Z — Cierre de la Fase 8, con pruebas sobre https://vibecoffe.onrender.com
+- Fase: 8 — cerrada. Siguiente: Fase 9 — Administración y reportes
+- Rama: main
+- Paso: iniciando la Fase 9
 
 ## Paradas confirmadas
 - 0.A Requisitos previos — 2026-10-23
@@ -17,6 +17,7 @@
 - 6.A Preparar el teléfono — omitida por decisión del usuario (se prueba en el sitio publicado)
 - 6.Z Cierre de la Fase 6 — 2026-10-24 (probada por el usuario en https://vibecoffe.onrender.com)
 - 7.Z Cierre de la Fase 7 — 2026-10-24 (probada por el usuario en https://vibecoffe.onrender.com)
+- 8.Z Cierre de la Fase 8 — 2026-10-24 (probada por el usuario en https://vibecoffe.onrender.com)
 - 7.A Teléfono como escáner — omitida por decisión del usuario (el sitio publicado ya tiene HTTPS, la cámara funciona sin la red local)
 - 10.0 Unir la rama antes de desplegar (adelantada) — 2026-10-23, PR #6
 - 10.A Servidor en Render (adelantada) — 2026-10-23: https://cafeteria-api-1ej1.onrender.com (`/api/health`, `/api/health/db`, `/api/menu` y `/api/banks` responden; `/api/me` sin sesión da 401)
@@ -29,6 +30,7 @@
 - Fase 5 — Checkout (unida a main el 2026-10-23, PR #5)
 - Fase 6 — Pago y verificación (unida a main el 2026-10-23, PR #6; cerrada el 2026-10-24)
 - Fase 7 — Retiro y barra (unida a main el 2026-10-24; cerrada el 2026-10-24)
+- Fase 8 — Puntos y cupones (unida a main el 2026-10-24; cerrada el 2026-10-24)
 
 ## Decisiones menores tomadas
 - Fase 1: el repositorio de GitHub pasó a ser público (decisión del usuario, para facilitar el despliegue). Ningún `.env` ni clave está en el historial.
