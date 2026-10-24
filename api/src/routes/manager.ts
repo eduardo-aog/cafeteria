@@ -15,6 +15,7 @@ import {
 } from '../services/products.js'
 import { listDeliveredToday, restoreOrder } from '../services/pickupOrders.js'
 import { getLatestRate } from '../services/rates.js'
+import { salesToday } from '../services/reports.js'
 
 export const managerRouter = Router()
 
@@ -90,4 +91,9 @@ managerRouter.post('/manager/orders/:id/restore', async (req, res) => {
   const { id } = idParams.parse(req.params)
   await restoreOrder(req.user!.id, id)
   res.json({ ok: true })
+})
+
+// Resumen de ventas del día, solo lectura (9.6).
+managerRouter.get('/manager/sales-today', async (_req, res) => {
+  res.json(await salesToday())
 })
