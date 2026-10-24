@@ -94,7 +94,10 @@ export default function RegisterPage() {
       </form>
       <p className="text-center text-sm text-muted-foreground">
         ¿Ya tienes cuenta?{' '}
-        <Link to="/login" className="font-medium text-primary underline-offset-4 hover:underline">
+        <Link
+          to="/login"
+          className="inline-flex min-h-11 items-center px-1 font-medium text-primary underline-offset-4 hover:underline"
+        >
           Inicia sesión
         </Link>
       </p>

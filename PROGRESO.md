@@ -1,9 +1,9 @@
 # Progreso del proyecto
 
 ## Estado actual
-- Fase: 9 — cerrada. Siguiente: Fase 10 — Datos de demostración y despliegue (las paradas 10.0, 10.A, 10.B y 10.C ya se hicieron por adelantado)
-- Rama: main
-- Paso: iniciando la Fase 10
+- Fase: 10 — Datos de demostración y despliegue (las paradas 10.0, 10.A, 10.B y 10.C se hicieron por adelantado)
+- Rama: feat/fase-10-despliegue
+- Paso: trabajo técnico terminado; esperando ⛔ PARADA 10.D — UptimeRobot (con la unión de esta rama). Faltan 10.E, 10.F (opcional y destructiva) y 10.Z
 
 ## Paradas confirmadas
 - 0.A Requisitos previos — 2026-10-23
@@ -115,6 +115,9 @@
 - Fase 9: `npm run db:seed:sales` (`api/prisma/seed-sales.ts`): 249 pedidos ya entregados de los últimos 28 días (sin domingos, con picos a mediodía y media tarde, más movimiento los viernes y sábados) a nombre de una cuenta propia «Ventas históricas» (`ventas-historicas@demo.com`, sin cuenta en Supabase Auth: no puede iniciar sesión), con pseudoaleatorio de semilla fija. Es idempotente (borra y regenera los pedidos de esa cuenta) y rápido (inserciones en bloque). No se incluye en el seed principal. Esos pedidos aparecen en los reportes y se borran con la limpieza de la PARADA 10.F.
 - Fase 9 (web): `/trabajo/configuracion`, `/trabajo/permisos`, `/trabajo/reportes` (selector Hoy, Semana, Mes y Rango; totales, tablas por categoría y producto, y tres gráficas con el componente de gráficos de shadcn sobre Recharts: top 10, demanda por hora y por día; la pantalla de reportes usa un contenedor más ancho, como pide 10.1) y `/trabajo/ventas-hoy`. Colores de las gráficas: `--primary` y `--caramel`. Se añadió la dependencia `recharts` y `components/ui/chart.tsx` (se quitó su variante oscura).
 - Fase 9: verificación: 62 comprobaciones de la API contra Supabase real (accesos por rol, 13 configuraciones inválidas, efecto inmediato del tope y de los datos de cobro, horario, permisos por correo con efecto inmediato, reportes con datos conocidos y la frontera de zona horaria, rangos inválidos y concordancia con «ventas de hoy») y la interfaz en Firefox real (reportes con las tres gráficas en escritorio y teléfono, configuración con validaciones y guardado, permisos hasta que la cuenta entra a `/trabajo`, ventas de hoy igual al reporte, «Atrás»). Sin restos: la configuración y los permisos se restauraron.
+- Fase 10: el seed ya cumplía la sección 15 (se comprobó con una consulta: Settings con los datos de cobro de ejemplo, 26 bancos, 14 productos, 4 recompensas, las 5 cuentas, tasa BCV). Se añadió `npm run db:reset-demo` (`api/scripts/db-reset-demo.ts`) para la PARADA 10.F: sin `-- --confirm` solo muestra lo que borraría (pedidos, envíos, movimientos, cupones, cuentas de Auth e imágenes del bucket) y no cambia nada; con `-- --confirm` ejecuta `prisma migrate reset --force --skip-seed`, borra todas las cuentas de Supabase Auth, vacía el bucket y vuelve a correr el seed (`-- --with-sales` añade las ventas históricas). Se niega con `NODE_ENV=production`. Solo se probó el simulacro: la ejecución real queda para la 10.F, con tu «confirmo». `migrate reset` usa `DIRECT_URL` (puerto 5432), así que con la VPN activa fallará.
+- Fase 10 (repaso de teléfono, 360×740, 24 pantallas de los 5 roles con un recorrido automático): ningún desborde horizontal, ningún texto en inglés ni sin traducir, estados de carga, vacío y error presentes en todas las listas. Hallazgos corregidos: los enlaces «Regístrate» e «Inicia sesión» (17 px) y el nombre del local en el panel de trabajo (28 px) pasan a 44 px de alto. El botón ☰ queda en 40 px y los botones de «Vista» en 36 px por decisión del usuario.
+- Fase 10: modo producción comprobado en local: `npm run build` y `node dist/index.js` con `NODE_ENV=production` (salud, base de datos, menú y bancos responden 200, `/api/me` sin sesión 401, sin los avisos de tiempos de desarrollo) y `npm run build` + `npm run preview` de la web (rutas internas, imágenes). README reescrito: estructura, variables, base de datos y cuentas de demostración, scripts, pruebas, teléfono en red local, despliegue en Render con UptimeRobot, rendimiento y solución de problemas.
 
 ## Contraste de la paleta (10.6, mínimo AA)
 | Pareja | Ratio |

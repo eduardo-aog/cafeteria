@@ -70,7 +70,7 @@ export default function LoginPage() {
         ¿No tienes cuenta?{' '}
         <Link
           to="/registro"
-          className="font-medium text-primary underline-offset-4 hover:underline"
+          className="inline-flex min-h-11 items-center px-1 font-medium text-primary underline-offset-4 hover:underline"
         >
           Regístrate
         </Link>
