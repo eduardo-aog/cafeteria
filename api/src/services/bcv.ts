@@ -1,6 +1,7 @@
 import { env } from '../config/env.js'
 import { isRateStale, parseBcvResponse } from '../domain/bcv.js'
 import { prisma } from '../lib/prisma.js'
+import { invalidateRate } from './rates.js'
 
 const TIMEOUT_MS = 60_000 // la API gratuita de Render puede tardar en despertar
 const RETRIES = 3
@@ -27,6 +28,7 @@ async function run(retryDelayMs: number): Promise<boolean> {
       await prisma.exchangeRate.create({
         data: { rateHundredths, bcvDate: new Date(`${bcvDate}T00:00:00Z`) },
       })
+      invalidateRate()
       console.log(`BCV: tasa guardada (${bcvDate}).`)
       return true
     } catch (err) {

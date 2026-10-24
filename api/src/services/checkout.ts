@@ -1,12 +1,17 @@
-import { Prisma, type Product } from '@prisma/client'
+import { Prisma } from '@prisma/client'
 import { checkoutExpiry, exceedsProductLimit } from '../domain/checkout.js'
 import { lineTotal, usdToBsCents } from '../domain/money.js'
 import { describeSchedule, isStoreOpen } from '../domain/schedule.js'
 import { prisma } from '../lib/prisma.js'
 import { AppError } from '../middleware/error.js'
 import { expireStaleCheckouts } from './checkoutExpiration.js'
+import { getProduct } from './products.js'
 import { getLatestRate } from './rates.js'
 import { getSettings } from './settings.js'
+
+// Cada viaje a la base de datos cuesta tiempo, así que las relaciones se cargan con un JOIN (una sola
+// consulta) y las operaciones arman el resultado en memoria en vez de volver a leer.
+const JOIN = { relationLoadStrategy: 'join' } as const
 
 const ORDER_INCLUDE = {
   items: { include: { product: true }, orderBy: { createdAt: 'asc' } },
@@ -67,14 +72,6 @@ export function toCheckoutDto(order: OrderWithItems, rate: Rate | null) {
   }
 }
 
-async function loadCheckout(orderId: string) {
-  const [order, rate] = await Promise.all([
-    prisma.order.findUniqueOrThrow({ where: { id: orderId }, include: ORDER_INCLUDE }),
-    getLatestRate(),
-  ])
-  return toCheckoutDto(order, rate)
-}
-
 // Checkouts del cliente: CREATED, IN_VERIFICATION y los EXPIRED de las últimas 24 h (9.3).
 export async function listCheckouts(userId: string) {
   await expireStaleCheckouts(prisma, userId)
@@ -89,6 +86,7 @@ export async function listCheckouts(userId: string) {
       },
       include: ORDER_INCLUDE,
       orderBy: { createdAt: 'desc' },
+      ...JOIN,
     }),
     getLatestRate(),
     getSettings(),
@@ -108,7 +106,6 @@ async function withCustomerLock<T>(
   return prisma.$transaction(
     async (tx) => {
       await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${userId}, 0))`
-      await expireStaleCheckouts(tx, userId)
       return work(tx)
     },
     // Con connection_limit=1 las peticiones simultáneas esperan su turno: se amplían las esperas por defecto (2 s y 5 s).
@@ -116,18 +113,14 @@ async function withCustomerLock<T>(
   )
 }
 
-async function unitsOfProduct(
-  tx: Prisma.TransactionClient,
-  orderId: string,
-  productId: string,
-  excludeItemId?: string,
-) {
-  const sum = await tx.orderItem.aggregate({
-    where: { orderId, productId, ...(excludeItemId && { id: { not: excludeItemId } }) },
-    _sum: { quantity: true },
-  })
-  return sum._sum.quantity ?? 0
-}
+// CREATED con el plazo vencido que la tarea o una lectura aún no han pasado a EXPIRED.
+const isStale = (order: { status: string; expiresAt: Date | null }, now: Date) =>
+  order.status === 'CREATED' && order.expiresAt !== null && order.expiresAt < now
+
+const unitsOf = (order: OrderWithItems, productId: string, excludeItemId?: string) =>
+  order.items
+    .filter((i) => i.productId === productId && i.id !== excludeItemId)
+    .reduce((sum, i) => sum + i.quantity, 0)
 
 const limitError = (max: number) =>
   new AppError(
@@ -135,16 +128,6 @@ const limitError = (max: number) =>
     `Solo puedes pedir hasta ${max} unidades de cada producto.`,
     409,
   )
-
-function assertProductAvailable(product: Product | null): asserts product is Product {
-  if (!product) throw new AppError('PRODUCT_NOT_FOUND', 'Producto no encontrado.', 404)
-  if (!product.isActive) {
-    throw new AppError('PRODUCT_UNAVAILABLE', 'Este producto ya no está disponible.', 409)
-  }
-  if (!product.isAvailable) {
-    throw new AppError('PRODUCT_UNAVAILABLE', 'Este producto está agotado.', 409)
-  }
-}
 
 export async function addItem(userId: string, productId: string, quantity: number) {
   const settings = await getSettings()
@@ -156,57 +139,77 @@ export async function addItem(userId: string, productId: string, quantity: numbe
       409,
     )
   }
-  assertProductAvailable(await prisma.product.findUnique({ where: { id: productId } }))
+  const product = await getProduct(productId)
+  if (!product) throw new AppError('PRODUCT_NOT_FOUND', 'Producto no encontrado.', 404)
+  if (!product.isActive) {
+    throw new AppError('PRODUCT_UNAVAILABLE', 'Este producto ya no está disponible.', 409)
+  }
+  if (!product.isAvailable) {
+    throw new AppError('PRODUCT_UNAVAILABLE', 'Este producto está agotado.', 409)
+  }
 
-  const orderId = await withCustomerLock(userId, async (tx) => {
+  const expiresAt = checkoutExpiry(now, settings.checkoutExpirationHours)
+  const order = await withCustomerLock(userId, async (tx) => {
     // Checkout abierto: CREATED sin envío previo. Uno rechazado no recibe ítems nuevos.
-    const order =
-      (await tx.order.findFirst({
-        where: { customerId: userId, status: 'CREATED', everSubmitted: false },
-      })) ??
-      (await tx.order.create({
-        data: {
-          customerId: userId,
-          expiresAt: checkoutExpiry(now, settings.checkoutExpirationHours),
-        },
-      }))
+    let open = await tx.order.findFirst({
+      where: { customerId: userId, status: 'CREATED', everSubmitted: false },
+      include: ORDER_INCLUDE,
+      ...JOIN,
+    })
+    if (open && isStale(open, now)) {
+      await tx.order.updateMany({
+        where: { id: open.id, status: 'CREATED', expiresAt: { lt: now } },
+        data: { status: 'EXPIRED', expiredAt: now },
+      })
+      open = null
+    }
+    open ??= await tx.order.create({
+      data: { customerId: userId, expiresAt },
+      include: ORDER_INCLUDE,
+      ...JOIN,
+    })
 
-    const units = await unitsOfProduct(tx, order.id, productId)
-    if (exceedsProductLimit(units, quantity, settings.maxQuantityPerProduct)) {
+    if (exceedsProductLimit(unitsOf(open, productId), quantity, settings.maxQuantityPerProduct)) {
       throw limitError(settings.maxQuantityPerProduct)
     }
 
     // Sin cupón: se suma a la línea existente del producto (8.5).
-    const line = await tx.orderItem.findFirst({
-      where: { orderId: order.id, productId, couponId: null },
-    })
+    const line = open.items.find((i) => i.productId === productId && i.couponId === null)
+    const items = line
+      ? open.items.map((i) => (i.id === line.id ? { ...i, quantity: i.quantity + quantity } : i))
+      : [
+          ...open.items,
+          await tx.orderItem.create({
+            data: { orderId: open.id, productId, quantity },
+            include: { product: true },
+          }),
+        ]
     if (line) {
       await tx.orderItem.update({
         where: { id: line.id },
         data: { quantity: { increment: quantity } },
+        select: { id: true },
       })
-    } else {
-      await tx.orderItem.create({ data: { orderId: order.id, productId, quantity } })
     }
-
     // Al agregar un ítem se reinicia el plazo.
-    await tx.order.update({
-      where: { id: order.id },
-      data: { expiresAt: checkoutExpiry(now, settings.checkoutExpirationHours) },
-    })
-    return order.id
+    await tx.order.update({ where: { id: open.id }, data: { expiresAt }, select: { id: true } })
+    return { ...open, expiresAt, items }
   })
 
-  return loadCheckout(orderId)
+  return toCheckoutDto(order, await getLatestRate())
 }
 
-// Línea de un checkout propio y todavía editable (CREATED).
+// Línea de un checkout propio y todavía editable: CREATED y con el plazo vigente.
 async function findEditableItem(tx: Prisma.TransactionClient, userId: string, itemId: string) {
-  const item = await tx.orderItem.findUnique({ where: { id: itemId }, include: { order: true } })
+  const item = await tx.orderItem.findUnique({
+    where: { id: itemId },
+    include: { order: { include: ORDER_INCLUDE } },
+    ...JOIN,
+  })
   if (!item || item.order.customerId !== userId) {
     throw new AppError('ITEM_NOT_FOUND', 'No encontramos ese producto en tu checkout.', 404)
   }
-  if (item.order.status !== 'CREATED') {
+  if (item.order.status !== 'CREATED' || isStale(item.order, new Date())) {
     throw new AppError('CHECKOUT_NOT_EDITABLE', 'Este checkout ya no se puede modificar.', 409)
   }
   return item
@@ -214,7 +217,7 @@ async function findEditableItem(tx: Prisma.TransactionClient, userId: string, it
 
 export async function updateItemQuantity(userId: string, itemId: string, quantity: number) {
   const settings = await getSettings()
-  const orderId = await withCustomerLock(userId, async (tx) => {
+  const order = await withCustomerLock(userId, async (tx) => {
     const item = await findEditableItem(tx, userId, itemId)
     if (item.couponId) {
       throw new AppError(
@@ -223,45 +226,51 @@ export async function updateItemQuantity(userId: string, itemId: string, quantit
         409,
       )
     }
-    const others = await unitsOfProduct(tx, item.orderId, item.productId, item.id)
+    const others = unitsOf(item.order, item.productId, item.id)
     if (exceedsProductLimit(others, quantity, settings.maxQuantityPerProduct)) {
       throw limitError(settings.maxQuantityPerProduct)
     }
-    await tx.orderItem.update({ where: { id: item.id }, data: { quantity } })
-    return item.orderId
+    await tx.orderItem.update({ where: { id: item.id }, data: { quantity }, select: { id: true } })
+    return {
+      ...item.order,
+      items: item.order.items.map((i) => (i.id === item.id ? { ...i, quantity } : i)),
+    }
   })
-  return loadCheckout(orderId)
+  return toCheckoutDto(order, await getLatestRate())
 }
 
 // Quita una línea. Si era la última, el checkout pasa a CANCELLED y se devuelve null.
 export async function removeItem(userId: string, itemId: string) {
-  const { orderId, cancelled } = await withCustomerLock(userId, async (tx) => {
+  const order = await withCustomerLock(userId, async (tx) => {
     const item = await findEditableItem(tx, userId, itemId)
-    await tx.orderItem.delete({ where: { id: item.id } })
-    const remaining = await tx.orderItem.count({ where: { orderId: item.orderId } })
-    if (remaining > 0) return { orderId: item.orderId, cancelled: false }
-    await tx.order.updateMany({
-      where: { id: item.orderId, status: 'CREATED' },
-      data: { status: 'CANCELLED', cancelledAt: new Date() },
-    })
-    return { orderId: item.orderId, cancelled: true }
+    await tx.orderItem.delete({ where: { id: item.id }, select: { id: true } })
+    const items = item.order.items.filter((i) => i.id !== item.id)
+    if (items.length === 0) {
+      await tx.order.updateMany({
+        where: { id: item.orderId, status: 'CREATED' },
+        data: { status: 'CANCELLED', cancelledAt: new Date() },
+      })
+      return null
+    }
+    return { ...item.order, items }
   })
-  return cancelled ? null : loadCheckout(orderId)
+  return order ? toCheckoutDto(order, await getLatestRate()) : null
 }
 
 // Solo en CREATED; IN_VERIFICATION y posteriores no se cancelan (8.5).
 export async function cancelCheckout(userId: string, orderId: string) {
   await withCustomerLock(userId, async (tx) => {
-    const order = await tx.order.findUnique({ where: { id: orderId } })
-    if (!order || order.customerId !== userId) {
-      throw new AppError('CHECKOUT_NOT_FOUND', 'Checkout no encontrado.', 404)
-    }
     const result = await tx.order.updateMany({
-      where: { id: orderId, status: 'CREATED' },
+      where: { id: orderId, customerId: userId, status: 'CREATED' },
       data: { status: 'CANCELLED', cancelledAt: new Date() },
     })
-    if (result.count === 0) {
-      throw new AppError('CHECKOUT_NOT_CANCELLABLE', 'Este checkout ya no se puede cancelar.', 409)
-    }
+    if (result.count > 0) return
+    // No cambió nada: se distingue «no es tuyo o no existe» de «ya no se puede cancelar».
+    const exists = await tx.order.findFirst({
+      where: { id: orderId, customerId: userId },
+      select: { id: true },
+    })
+    if (!exists) throw new AppError('CHECKOUT_NOT_FOUND', 'Checkout no encontrado.', 404)
+    throw new AppError('CHECKOUT_NOT_CANCELLABLE', 'Este checkout ya no se puede cancelar.', 409)
   })
 }

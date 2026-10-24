@@ -1,11 +1,13 @@
 import { Router } from 'express'
 import { effectivePermissions, isStaff } from '../domain/permissions.js'
+import { prisma } from '../lib/prisma.js'
 import { requireAuth } from '../middleware/auth.js'
 
 export const meRouter = Router()
 
-meRouter.get('/me', requireAuth, (req, res) => {
-  const user = req.user!
+meRouter.get('/me', requireAuth, async (req, res) => {
+  // Lectura fresca: el saldo de puntos no debe salir del caché de requireAuth.
+  const user = await prisma.user.findUniqueOrThrow({ where: { id: req.user!.id } })
   res.json({
     id: user.id,
     name: user.name,

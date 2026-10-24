@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { ArrowLeft, Clock } from 'lucide-react'
+import { ArrowLeft, Clock, LoaderCircle } from 'lucide-react'
 import { Price } from '@/components/Price'
 import { ProductImage } from '@/components/ProductImage'
 import { ErrorBlock, LoadingBlock } from '@/components/QueryState'
@@ -85,7 +85,10 @@ export default function ProductPage() {
               disabled={!query.data.product.isAvailable || !store?.isOpen || isPending}
               onClick={() => add(query.data.product, quantity)}
             >
-              Agregar al checkout
+              {isPending && (
+                <LoaderCircle className="animate-spin" strokeWidth={1.5} aria-hidden="true" />
+              )}
+              {isPending ? 'Agregando…' : 'Agregar al checkout'}
             </Button>
           </div>
         </article>

@@ -10,7 +10,12 @@ import { StatusBadge } from '@/components/StatusBadge'
 import { Button } from '@/components/ui/button'
 import { ViewToggle } from '@/components/ViewToggle'
 import { gridColumnsClass, useGridColumns } from '@/hooks/useGridColumns'
-import { productRequests, useManagerProducts, useProductMutation } from '@/hooks/useManagerProducts'
+import {
+  productMutationOptions,
+  productRequests,
+  useManagerProducts,
+  useProductMutation,
+} from '@/hooks/useManagerProducts'
 import { CATEGORY_LABELS, type Category, type Product } from '@/lib/types'
 
 const CATEGORIES: Category[] = ['CAFE', 'BEBIDAS', 'POSTRES']
@@ -93,7 +98,10 @@ export default function CatalogPage() {
 
 // Todo el contenido va hacia abajo: imagen, nombre, precios y botones.
 function CatalogCard({ product }: { product: Product }) {
-  const availability = useProductMutation(productRequests.setAvailability)
+  const availability = useProductMutation(
+    productRequests.setAvailability,
+    productMutationOptions.setAvailability,
+  )
 
   return (
     <div className="flex h-full flex-col gap-2 rounded-lg border border-border bg-card p-2">
@@ -129,7 +137,6 @@ function CatalogCard({ product }: { product: Product }) {
         </Button>
         <Button
           variant="outline"
-          disabled={availability.isPending}
           onClick={() =>
             availability.mutate(
               { id: product.id, isAvailable: !product.isAvailable },

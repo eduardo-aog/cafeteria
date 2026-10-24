@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { Clock, Plus } from 'lucide-react'
+import { Clock, LoaderCircle, Plus } from 'lucide-react'
 import { Price } from '@/components/Price'
 import { ProductImage } from '@/components/ProductImage'
 import { EmptyBlock, ErrorBlock, LoadingBlock } from '@/components/QueryState'
@@ -105,8 +105,12 @@ function ProductCard({ product, storeOpen }: { product: Product; storeOpen: bool
         disabled={!product.isAvailable || !storeOpen || isPending}
         onClick={() => add(product)}
       >
-        <Plus strokeWidth={1.5} aria-hidden="true" />
-        Agregar
+        {isPending ? (
+          <LoaderCircle className="animate-spin" strokeWidth={1.5} aria-hidden="true" />
+        ) : (
+          <Plus strokeWidth={1.5} aria-hidden="true" />
+        )}
+        {isPending ? 'Agregando…' : 'Agregar'}
       </Button>
     </div>
   )

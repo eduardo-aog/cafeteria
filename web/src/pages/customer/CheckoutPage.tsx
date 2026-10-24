@@ -1,3 +1,4 @@
+import { useIsMutating } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import { Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
@@ -7,7 +8,13 @@ import { EmptyBlock, ErrorBlock, LoadingBlock } from '@/components/QueryState'
 import { StatusBadge, type BadgeTone } from '@/components/StatusBadge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { useCancelCheckout, useCheckouts, useRemoveItem, useUpdateItem } from '@/hooks/useCheckouts'
+import {
+  CHECKOUT_MUTATION_KEY,
+  useCancelCheckout,
+  useCheckouts,
+  useRemoveItem,
+  useUpdateItem,
+} from '@/hooks/useCheckouts'
 import { useNow } from '@/hooks/useNow'
 import { formatBs, formatRemaining, formatTime, formatUsd } from '@/lib/format'
 import {
@@ -56,6 +63,8 @@ export default function CheckoutPage() {
 function CheckoutCard({ checkout, maxQuantity }: { checkout: Checkout; maxQuantity: number }) {
   const now = useNow()
   const cancel = useCancelCheckout()
+  // Los montos los calcula el servidor: mientras hay un cambio en curso se atenúan hasta que llegue la respuesta.
+  const updating = useIsMutating({ mutationKey: CHECKOUT_MUTATION_KEY }) > 0
   const badge = STATUS_BADGES[checkout.status]
   const editable = checkout.status === 'CREATED'
   const rejection = checkout.lastRejection
@@ -90,6 +99,7 @@ function CheckoutCard({ checkout, maxQuantity }: { checkout: Checkout; maxQuanti
             <li key={item.id} className="py-3 first:pt-0 last:pb-0">
               <CheckoutLine
                 item={item}
+                updating={updating}
                 maxQuantity={maxQuantity}
                 editable={editable}
                 isLast={checkout.items.length === 1}
@@ -100,7 +110,9 @@ function CheckoutCard({ checkout, maxQuantity }: { checkout: Checkout; maxQuanti
 
         <div className="flex items-end justify-between gap-3 border-t border-border pt-3">
           <span className="font-medium">Total</span>
-          <div className="flex flex-col items-end">
+          <div
+            className={`flex flex-col items-end transition-opacity duration-150 ${updating ? 'opacity-50' : ''}`}
+          >
             <span className="text-lg font-semibold text-caramel">
               {formatUsd(checkout.totalCents)}
             </span>
@@ -155,15 +167,16 @@ function CheckoutLine({
   maxQuantity,
   editable,
   isLast,
+  updating,
 }: {
   item: CheckoutItem
   maxQuantity: number
   editable: boolean
   isLast: boolean
+  updating: boolean
 }) {
   const update = useUpdateItem()
   const remove = useRemoveItem()
-  const busy = update.isPending || remove.isPending
   const unavailable = !item.isActive
     ? 'Ya no está disponible'
     : !item.isAvailable
@@ -178,7 +191,9 @@ function CheckoutLine({
           <p className="text-sm text-muted-foreground">{formatUsd(item.unitPriceCents)} c/u</p>
           {unavailable && editable && <p className="text-sm text-warning">{unavailable}</p>}
         </div>
-        <div className="flex shrink-0 flex-col items-end">
+        <div
+          className={`flex shrink-0 flex-col items-end transition-opacity duration-150 ${updating ? 'opacity-50' : ''}`}
+        >
           <span className="font-semibold text-caramel">{formatUsd(item.lineTotalCents)}</span>
           {item.lineTotalBsCents !== null && (
             <span className="text-sm text-muted-foreground">{formatBs(item.lineTotalBsCents)}</span>
@@ -191,18 +206,12 @@ function CheckoutLine({
           <QuantityStepper
             value={item.quantity}
             max={maxQuantity}
-            disabled={busy}
             onChange={(quantity) => update.mutate({ itemId: item.id, quantity })}
           />
           {isLast ? (
             <ConfirmDialog
               trigger={
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  aria-label={`Quitar ${item.name}`}
-                  disabled={busy}
-                >
+                <Button variant="ghost" size="icon" aria-label={`Quitar ${item.name}`}>
                   <Trash2 strokeWidth={1.5} aria-hidden="true" />
                 </Button>
               }
@@ -219,7 +228,6 @@ function CheckoutLine({
               variant="ghost"
               size="icon"
               aria-label={`Quitar ${item.name}`}
-              disabled={busy}
               onClick={() => remove.mutate(item.id)}
             >
               <Trash2 strokeWidth={1.5} aria-hidden="true" />
