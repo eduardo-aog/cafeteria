@@ -72,7 +72,7 @@ function CouponCard({ coupon, tab }: { coupon: Coupon; tab: CouponTab }) {
         <p className="text-sm text-muted-foreground">{describeCoupon(coupon)}</p>
         {tab === 'available' && (
           <p className="text-sm">
-            Vence el {formatDate(coupon.expiresAt)} · {describeDaysLeft(coupon.daysLeft)}
+            Vence el {formatDate(coupon.expiresAt)} ({describeDaysLeft(coupon.daysLeft)})
           </p>
         )}
         {tab === 'used' && coupon.usedAt && (

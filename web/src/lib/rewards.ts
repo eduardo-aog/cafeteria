@@ -16,7 +16,7 @@ export function describeCoupon(coupon: Pick<Coupon, 'type' | 'percent' | 'produc
 
 // «hoy», «mañana» o «en 8 días» (el servidor ya cuenta los días en hora de Caracas).
 export function describeDaysLeft(daysLeft: number): string {
-  if (daysLeft <= 0) return 'vence hoy'
-  if (daysLeft === 1) return 'vence mañana'
-  return `vence en ${daysLeft} días`
+  if (daysLeft <= 0) return 'hoy'
+  if (daysLeft === 1) return 'mañana'
+  return `en ${daysLeft} días`
 }

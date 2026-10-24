@@ -108,8 +108,8 @@ export default function ProductPage() {
                       <p className="font-semibold">{coupon.title}</p>
                       <p className="text-sm text-muted-foreground">{describeCoupon(coupon)}</p>
                       <p className="text-sm text-muted-foreground">
-                        Vence el {formatDate(coupon.expiresAt)} ·{' '}
-                        {describeDaysLeft(coupon.daysLeft)}
+                        Vence el {formatDate(coupon.expiresAt)} ({describeDaysLeft(coupon.daysLeft)}
+                        )
                       </p>
                     </div>
                     <Button

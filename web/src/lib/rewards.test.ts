@@ -20,8 +20,8 @@ describe('describeReward y describeCoupon', () => {
 
 describe('describeDaysLeft', () => {
   it('hoy, mañana y varios días', () => {
-    expect(describeDaysLeft(0)).toBe('vence hoy')
-    expect(describeDaysLeft(1)).toBe('vence mañana')
-    expect(describeDaysLeft(8)).toBe('vence en 8 días')
+    expect(describeDaysLeft(0)).toBe('hoy')
+    expect(describeDaysLeft(1)).toBe('mañana')
+    expect(describeDaysLeft(8)).toBe('en 8 días')
   })
 })
