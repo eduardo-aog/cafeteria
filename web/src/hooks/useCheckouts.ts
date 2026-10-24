@@ -63,6 +63,8 @@ function useCheckoutMutation<TVars, TResult>({
     onSuccess: async (data, vars) => {
       await queryClient.cancelQueries({ queryKey: KEY })
       apply(queryClient, data, vars)
+      // Los cupones reservados o liberados cambian de estado.
+      void queryClient.invalidateQueries({ queryKey: ['coupons'] })
     },
     onError: (err, _vars, context) => {
       if (context?.previous) queryClient.setQueryData(KEY, context.previous)
@@ -128,15 +130,26 @@ export function useCancelCheckout() {
 export function useAddToCheckout() {
   const navigate = useNavigate()
   const mutation = useCheckoutMutation({
-    request: ({ productId, quantity }: { productId: string; quantity: number }) =>
-      api<CheckoutResponse>('/checkout/items', { method: 'POST', body: { productId, quantity } }),
+    request: ({
+      productId,
+      quantity,
+      couponId,
+    }: {
+      productId: string
+      quantity: number
+      couponId?: string
+    }) =>
+      api<CheckoutResponse>('/checkout/items', {
+        method: 'POST',
+        body: { productId, quantity, couponId },
+      }),
     apply: (queryClient, data) => applyCheckoutResponse(queryClient, data),
   })
   return {
     isPending: mutation.isPending,
-    add: (product: { id: string; name: string }, quantity = 1) =>
+    add: (product: { id: string; name: string }, quantity = 1, couponId?: string) =>
       mutation.mutate(
-        { productId: product.id, quantity },
+        { productId: product.id, quantity, couponId },
         {
           onSuccess: () =>
             toast.success(`${product.name} agregado al checkout.`, {

@@ -8,6 +8,8 @@ interface ConfirmDialogProps {
   description: string
   confirmLabel: string
   destructive?: boolean
+  // Contenido extra bajo la descripción (por ejemplo, un aviso destacado).
+  children?: ReactNode
   onConfirm: () => void
 }
 
@@ -18,6 +20,7 @@ export function ConfirmDialog({
   description,
   confirmLabel,
   destructive,
+  children,
   onConfirm,
 }: ConfirmDialogProps) {
   return (
@@ -32,6 +35,7 @@ export function ConfirmDialog({
           <AlertDialog.Description className="text-sm text-muted-foreground">
             {description}
           </AlertDialog.Description>
+          {children}
           <div className="flex flex-col gap-2">
             <AlertDialog.Action asChild>
               <Button variant={destructive ? 'destructive' : 'default'} onClick={onConfirm}>
