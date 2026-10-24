@@ -1,6 +1,6 @@
 import { DateTime } from 'luxon'
 import { describe, expect, it } from 'vitest'
-import { describeSchedule, isStoreOpen, nextOpening } from './schedule.js'
+import { describeSchedule, formatTimeCaracas, isStoreOpen, nextOpening } from './schedule.js'
 
 const settings = { openDays: [1, 2, 3, 4, 5, 6], openTime: '08:00', closeTime: '20:00' }
 // Hora de Caracas (UTC-4) → Date.
@@ -80,5 +80,11 @@ describe('describeSchedule', () => {
 
   it('sin días abiertos', () => {
     expect(describeSchedule({ ...settings, openDays: [] })).toBe('sin días de atención')
+  })
+})
+
+describe('formatTimeCaracas', () => {
+  it('muestra la hora de Caracas', () => {
+    expect(formatTimeCaracas(new Date('2026-10-23T20:32:00Z'))).toBe('4:32 p. m.')
   })
 })

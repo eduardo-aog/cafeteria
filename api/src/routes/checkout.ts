@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { requireAuth } from '../middleware/auth.js'
 import { AppError } from '../middleware/error.js'
 import { requireCustomer } from '../middleware/permissions.js'
+import { confirmFree, preparePayment, submitPayment } from '../services/payment.js'
 import {
   addItem,
   cancelCheckout,
@@ -13,7 +14,8 @@ import {
 
 export const checkoutRouter = Router()
 
-checkoutRouter.use(requireAuth, requireCustomer)
+// Solo para sus rutas: un `use` sin prefijo también atraparía las de los routers que se montan después.
+checkoutRouter.use(['/checkout', '/checkouts'], requireAuth, requireCustomer)
 
 const uuid = z.uuid()
 const quantity = z.number().int().min(1).max(100)
@@ -55,5 +57,30 @@ checkoutRouter.delete('/checkout/items/:itemId', async (req, res) => {
 checkoutRouter.post('/checkouts/:id/cancel', async (req, res) => {
   const { id } = z.object({ id: uuid }).parse(req.params)
   await cancelCheckout(req.user!.id, id)
+  res.json({ ok: true })
+})
+
+checkoutRouter.post('/checkouts/:id/prepare-payment', async (req, res) => {
+  const { id } = z.object({ id: uuid }).parse(req.params)
+  res.json(await preparePayment(req.user!.id, id))
+})
+
+const paymentBody = z.object({
+  reference: z
+    .string()
+    .trim()
+    .regex(/^\d{6,22}$/, 'La referencia debe tener de 6 a 22 dígitos.'),
+  bankCode: z.string().regex(/^\d{4}$/, 'Elige un banco de la lista.'),
+})
+
+checkoutRouter.post('/checkouts/:id/payment', async (req, res) => {
+  const { id } = z.object({ id: uuid }).parse(req.params)
+  const input = paymentBody.parse(req.body)
+  res.status(201).json({ checkout: await submitPayment(req.user!.id, id, input) })
+})
+
+checkoutRouter.post('/checkouts/:id/confirm-free', async (req, res) => {
+  const { id } = z.object({ id: uuid }).parse(req.params)
+  await confirmFree(req.user!.id, id)
   res.json({ ok: true })
 })

@@ -62,3 +62,8 @@ export function describeSchedule(settings: ScheduleSettings): string {
         : `${parts.slice(0, -1).join(', ')} y ${parts.at(-1)}`
   return `${dayText} de ${formatClock(settings.openTime)} a ${formatClock(settings.closeTime)}`
 }
+
+// Hora de Caracas en pantalla: "4:32 p. m."
+export function formatTimeCaracas(date: Date): string {
+  return formatClock(DateTime.fromJSDate(date, { zone: STORE_ZONE }).toFormat('HH:mm'))
+}
