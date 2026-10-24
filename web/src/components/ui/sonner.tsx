@@ -12,6 +12,8 @@ const Toaster = ({ ...props }: ToasterProps) => {
   return (
     <Sonner
       theme="light"
+      // Arriba a la derecha: en pantallas anchas no tapa la barra inferior ni los botones de abajo.
+      position="top-right"
       className="toaster group"
       icons={{
         success: <CircleCheckIcon className="size-5 text-success" />,

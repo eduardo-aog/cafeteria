@@ -13,6 +13,7 @@ import {
   toProductDto,
   updateProduct,
 } from '../services/products.js'
+import { listDeliveredToday, restoreOrder } from '../services/pickupOrders.js'
 import { getLatestRate } from '../services/rates.js'
 
 export const managerRouter = Router()
@@ -79,4 +80,14 @@ managerRouter.patch('/manager/products/:id/availability', async (req, res) => {
   const { isAvailable } = z.object({ isAvailable: z.boolean() }).parse(req.body)
   const product = await updateProduct(id, { isAvailable })
   res.json({ product: toProductDto(product, await getLatestRate()) })
+})
+
+managerRouter.get('/manager/delivered-today', async (_req, res) => {
+  res.json({ orders: await listDeliveredToday() })
+})
+
+managerRouter.post('/manager/orders/:id/restore', async (req, res) => {
+  const { id } = idParams.parse(req.params)
+  await restoreOrder(req.user!.id, id)
+  res.json({ ok: true })
 })
