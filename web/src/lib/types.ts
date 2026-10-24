@@ -242,3 +242,60 @@ export interface PointsMovement {
   createdAt: string
   couponTitle: string | null
 }
+
+export interface AdminSettings {
+  pointsPerDollar: number
+  checkoutExpirationHours: number
+  maxPaidUnscannedOrders: number
+  rejectionsBeforeBlock: number
+  blockMinutes: number
+  referenceSubmissionsPerMinute: number
+  maxQuantityPerProduct: number
+  paymentDocType: 'V' | 'E' | 'J' | 'G'
+  paymentDocNumber: string
+  paymentBankCode: string
+  paymentPhone: string
+  openDays: number[]
+  openTime: string
+  closeTime: string
+}
+
+export interface StaffUser {
+  id: string
+  name: string
+  email: string
+  isAdmin: boolean
+  canCashier: boolean
+  canBarista: boolean
+  canManager: boolean
+  isStaff: boolean
+}
+
+export type ReportPeriod = 'today' | 'week' | 'month' | 'custom'
+
+export interface SalesReport {
+  period: { key: ReportPeriod; start: string; end: string }
+  totals: { orders: number; totalCents: number; totalBsCents: number }
+  byProduct: {
+    productId: string
+    name: string
+    category: Category
+    units: number
+    amountCents: number
+  }[]
+  byCategory: { category: Category; units: number; amountCents: number }[]
+  topProducts: {
+    productId: string
+    name: string
+    category: Category
+    units: number
+    amountCents: number
+  }[]
+  demandByHour: number[]
+  demandByWeekday: number[]
+}
+
+export interface SalesToday {
+  totals: { orders: number; totalCents: number; totalBsCents: number }
+  units: { productId: string; name: string; units: number }[]
+}

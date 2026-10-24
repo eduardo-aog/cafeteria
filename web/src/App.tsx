@@ -24,6 +24,10 @@ import CatalogPage from '@/pages/staff/CatalogPage'
 import ProductFormPage from '@/pages/staff/ProductFormPage'
 import AdminRewardsPage from '@/pages/staff/AdminRewardsPage'
 import BaristaPage from '@/pages/staff/BaristaPage'
+import ConfigPage from '@/pages/staff/ConfigPage'
+import PermissionsPage from '@/pages/staff/PermissionsPage'
+import ReportsPage from '@/pages/staff/ReportsPage'
+import SalesTodayPage from '@/pages/staff/SalesTodayPage'
 import RestorePage from '@/pages/staff/RestorePage'
 import RewardFormPage from '@/pages/staff/RewardFormPage'
 import ScanPage from '@/pages/staff/ScanPage'
@@ -32,7 +36,18 @@ import { STAFF_SECTIONS } from '@/pages/staff/sections'
 import WorkHome from '@/pages/staff/WorkHome'
 
 // Secciones de trabajo que ya tienen su pantalla; el resto sigue como marcador de posición.
-const HANDLED_PATHS = ['catalogo', 'verificacion', 'escanear', 'barra', 'restaurar', 'recompensas']
+const HANDLED_PATHS = [
+  'catalogo',
+  'verificacion',
+  'escanear',
+  'barra',
+  'restaurar',
+  'recompensas',
+  'configuracion',
+  'permisos',
+  'reportes',
+  'ventas-hoy',
+]
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -80,6 +95,7 @@ export default function App() {
                   <Route path="catalogo/nuevo" element={<ProductFormPage />} />
                   <Route path="catalogo/:id" element={<ProductFormPage />} />
                   <Route path="restaurar" element={<RestorePage />} />
+                  <Route path="ventas-hoy" element={<SalesTodayPage />} />
                 </Route>
                 <Route element={<RequirePerm perms={['cashier']} />}>
                   <Route path="verificacion" element={<VerificationPage />} />
@@ -89,6 +105,9 @@ export default function App() {
                   <Route path="recompensas" element={<AdminRewardsPage />} />
                   <Route path="recompensas/nueva" element={<RewardFormPage />} />
                   <Route path="recompensas/:id" element={<RewardFormPage />} />
+                  <Route path="configuracion" element={<ConfigPage />} />
+                  <Route path="permisos" element={<PermissionsPage />} />
+                  <Route path="reportes" element={<ReportsPage />} />
                 </Route>
                 <Route element={<RequirePerm perms={['barista', 'manager']} />}>
                   <Route path="barra" element={<BaristaPage />} />

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, NavLink, Outlet } from 'react-router-dom'
+import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
 import { Dialog } from 'radix-ui'
 import { House, LogOut, Menu, X, type LucideIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -11,8 +11,10 @@ import { cn } from '@/lib/utils'
 import { STAFF_SECTIONS } from '@/pages/staff/sections'
 
 export default function WorkLayout() {
+  // Los reportes necesitan más ancho para las gráficas (10.1); el resto de pantallas de trabajo, el de un teléfono.
+  const wide = useLocation().pathname.startsWith('/trabajo/reportes')
   return (
-    <div className="mx-auto flex min-h-svh max-w-120 flex-col">
+    <div className={cn('mx-auto flex min-h-svh flex-col', wide ? 'max-w-3xl' : 'max-w-120')}>
       <header className="sticky top-0 z-40 flex items-center gap-2 bg-background px-4 py-2">
         <WorkMenu />
         <Link to="/trabajo" className="font-heading text-xl font-semibold">
