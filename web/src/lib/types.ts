@@ -72,6 +72,8 @@ export interface CheckoutItem {
   isActive: boolean
   quantity: number
   unitPriceCents: number
+  discountCents: number
+  couponTitle: string | null
   lineTotalCents: number
   lineTotalBsCents: number | null
 }
@@ -93,4 +95,68 @@ export interface Checkout {
 export interface CheckoutsResponse {
   checkouts: Checkout[]
   maxQuantityPerProduct: number
+}
+
+export interface Bank {
+  code: string
+  name: string
+}
+
+// Respuesta de POST /checkouts/:id/prepare-payment (8.6, paso 1).
+export interface PreparedPayment {
+  isFree: boolean
+  totalCents: number
+  totalBsCents: number
+  rateHundredths: number | null
+  payment: {
+    bank: string
+    document: string
+    phone: string
+    amountBsCents: number
+    clipboardText: string
+  } | null
+}
+
+// Línea afectada en un ITEMS_UNAVAILABLE.
+export interface UnavailableItem {
+  itemId: string
+  name: string
+  reason: 'SOLD_OUT' | 'DISCONTINUED'
+}
+
+export interface VerificationSubmission {
+  id: string
+  submittedAt: string
+  customerName: string
+  reference: string
+  bankCode: string
+  bankName: string
+  totalCents: number
+  amountBsCents: number
+  items: {
+    id: string
+    name: string
+    quantity: number
+    lineTotalCents: number | null
+    couponTitle: string | null
+  }[]
+}
+
+export interface InventoryOrder {
+  id: string
+  paidAt: string
+  pickupCode: string | null
+  qrToken: string | null
+  totalCents: number
+  amountBsCents: number
+  pointsEarned: number | null
+  items: {
+    id: string
+    name: string
+    quantity: number
+    unitPriceCents: number
+    discountCents: number
+    lineTotalCents: number
+    couponTitle: string | null
+  }[]
 }

@@ -142,6 +142,12 @@ function CheckoutCard({ checkout, maxQuantity }: { checkout: Checkout; maxQuanti
         )}
 
         {editable && (
+          <Button asChild={!blocked} disabled={!!blocked}>
+            {blocked ? <span>Pagar</span> : <Link to={`/pagar/${checkout.id}`}>Pagar</Link>}
+          </Button>
+        )}
+
+        {editable && (
           <ConfirmDialog
             trigger={
               <Button variant="destructive" disabled={cancel.isPending}>
@@ -189,6 +195,11 @@ function CheckoutLine({
         <div className="min-w-0">
           <p className="font-medium">{item.name}</p>
           <p className="text-sm text-muted-foreground">{formatUsd(item.unitPriceCents)} c/u</p>
+          {item.couponTitle && (
+            <p className="text-sm text-success">
+              Cupón: {item.couponTitle} (−{formatUsd(item.discountCents)})
+            </p>
+          )}
           {unavailable && editable && <p className="text-sm text-warning">{unavailable}</p>}
         </div>
         <div

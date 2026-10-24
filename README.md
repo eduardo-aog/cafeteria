@@ -89,4 +89,4 @@ Cada consulta a Supabase es un viaje de red. Si tu conexión es lenta (por ejemp
 - Prueba con la VPN apagada (las migraciones ya lo requieren por el puerto 5432).
 - Opcional: sube `connection_limit` en `DATABASE_URL` de `api/.env` (por ejemplo `connection_limit=5`) para que las consultas en paralelo corran en paralelo. Con `connection_limit=1` se hacen una tras otra.
 - Con `npm run dev` en `api/`, cada petición imprime su duración (`MÉTODO ruta estado ms`).
-
+- `npm test` en `api/` incluye una prueba de concurrencia contra la base de datos real (`verification.concurrency.test.ts`). Se omite si no existe `api/.env` y tarda unos segundos por cada viaje a la base (con VPN, ~35 s).
