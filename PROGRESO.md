@@ -1,9 +1,9 @@
 # Progreso del proyecto
 
 ## Estado actual
-- Fase: 6 — Pago y verificación
-- Rama: main (feat/fase-06-pago unida, PR #6; fix/nombre-vibecoffe unida, PR #7)
-- Paso: esperando ⛔ PARADA 6.Z — Cierre de la Fase 6, con pruebas sobre https://vibecoffe.onrender.com
+- Fase: 6 — cerrada. Siguiente: Fase 7 — Retiro y barra
+- Rama: main
+- Paso: iniciando la Fase 7
 
 ## Paradas confirmadas
 - 0.A Requisitos previos — 2026-10-23
@@ -15,6 +15,7 @@
 - 4.Z Cierre de la Fase 4 — 2026-10-23
 - 5.Z Cierre de la Fase 5 — 2026-10-23
 - 6.A Preparar el teléfono — omitida por decisión del usuario (se prueba en el sitio publicado)
+- 6.Z Cierre de la Fase 6 — 2026-10-24 (probada por el usuario en https://vibecoffe.onrender.com)
 - 10.0 Unir la rama antes de desplegar (adelantada) — 2026-10-23, PR #6
 - 10.A Servidor en Render (adelantada) — 2026-10-23: https://cafeteria-api-1ej1.onrender.com (`/api/health`, `/api/health/db`, `/api/menu` y `/api/banks` responden; `/api/me` sin sesión da 401)
 
@@ -24,6 +25,7 @@
 - Fase 3 — Autenticación y permisos (unida a main el 2026-10-23, PR #3)
 - Fase 4 — Dominio, tasa BCV, catálogo y menú (unida a main el 2026-10-23, PR #4)
 - Fase 5 — Checkout (unida a main el 2026-10-23, PR #5)
+- Fase 6 — Pago y verificación (unida a main el 2026-10-23, PR #6; cerrada el 2026-10-24)
 
 ## Decisiones menores tomadas
 - Fase 1: el repositorio de GitHub pasó a ser público (decisión del usuario, para facilitar el despliegue). Ningún `.env` ni clave está en el historial.
