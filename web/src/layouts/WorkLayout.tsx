@@ -17,7 +17,10 @@ export default function WorkLayout() {
     <div className={cn('mx-auto flex min-h-svh flex-col', wide ? 'max-w-3xl' : 'max-w-120')}>
       <header className="sticky top-0 z-40 flex items-center gap-2 bg-background px-4 py-2">
         <WorkMenu />
-        <Link to="/trabajo" className="font-heading text-xl font-semibold">
+        <Link
+          to="/trabajo"
+          className="inline-flex min-h-11 items-center font-heading text-xl font-semibold"
+        >
           {APP_NAME}
         </Link>
       </header>

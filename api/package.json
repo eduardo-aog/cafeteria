@@ -20,6 +20,7 @@
     "db:deploy": "prisma migrate deploy",
     "db:seed": "tsx prisma/seed.ts",
     "db:seed:sales": "tsx prisma/seed-sales.ts",
+    "db:reset-demo": "tsx scripts/db-reset-demo.ts",
     "db:studio": "prisma studio",
     "dev:store-open": "tsx scripts/dev-store-open.ts",
     "dev:store-default": "tsx scripts/dev-store-default.ts",
