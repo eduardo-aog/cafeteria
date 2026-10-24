@@ -22,7 +22,8 @@
     "db:studio": "prisma studio",
     "dev:store-open": "tsx scripts/dev-store-open.ts",
     "dev:store-default": "tsx scripts/dev-store-default.ts",
-    "dev:expire-checkouts": "tsx scripts/dev-expire-checkouts.ts"
+    "dev:expire-checkouts": "tsx scripts/dev-expire-checkouts.ts",
+    "dev:expire-coupons": "tsx scripts/dev-expire-coupons.ts"
   },
   "dependencies": {
     "@prisma/client": "^6.19.3",

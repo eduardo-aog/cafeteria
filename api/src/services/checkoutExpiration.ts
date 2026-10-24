@@ -1,4 +1,5 @@
 import { Prisma, type PrismaClient } from '@prisma/client'
+import { releaseCouponsOfOrders } from './coupons.js'
 
 type Db = Prisma.TransactionClient | PrismaClient
 
@@ -16,5 +17,10 @@ export async function expireStaleCheckouts(db: Db, customerId?: string): Promise
       AND "expiresAt" < (now() AT TIME ZONE 'UTC')
       ${customerId ? Prisma.sql`AND "customerId" = ${customerId}::uuid` : Prisma.empty}
     RETURNING "id"`
+  // Los cupones reservados no se pierden si el pedido no se pagó (8.5).
+  await releaseCouponsOfOrders(
+    db,
+    rows.map((r) => r.id),
+  )
   return rows.length
 }

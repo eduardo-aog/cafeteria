@@ -11,24 +11,28 @@ import LoginPage from '@/pages/auth/LoginPage'
 import RegisterPage from '@/pages/auth/RegisterPage'
 import AccountPage from '@/pages/customer/AccountPage'
 import CheckoutPage from '@/pages/customer/CheckoutPage'
+import CouponsPage from '@/pages/customer/CouponsPage'
 import HistoryPage from '@/pages/customer/HistoryPage'
 import OrderDetailPage from '@/pages/customer/OrderDetailPage'
 import OrdersPage from '@/pages/customer/OrdersPage'
 import PaymentPage from '@/pages/customer/PaymentPage'
 import PointsPage from '@/pages/customer/PointsPage'
+import RewardsPage from '@/pages/customer/RewardsPage'
 import MenuPage from '@/pages/customer/MenuPage'
 import ProductPage from '@/pages/customer/ProductPage'
 import CatalogPage from '@/pages/staff/CatalogPage'
 import ProductFormPage from '@/pages/staff/ProductFormPage'
+import AdminRewardsPage from '@/pages/staff/AdminRewardsPage'
 import BaristaPage from '@/pages/staff/BaristaPage'
 import RestorePage from '@/pages/staff/RestorePage'
+import RewardFormPage from '@/pages/staff/RewardFormPage'
 import ScanPage from '@/pages/staff/ScanPage'
 import VerificationPage from '@/pages/staff/VerificationPage'
 import { STAFF_SECTIONS } from '@/pages/staff/sections'
 import WorkHome from '@/pages/staff/WorkHome'
 
 // Secciones de trabajo que ya tienen su pantalla; el resto sigue como marcador de posición.
-const HANDLED_PATHS = ['catalogo', 'verificacion', 'escanear', 'barra', 'restaurar']
+const HANDLED_PATHS = ['catalogo', 'verificacion', 'escanear', 'barra', 'restaurar', 'recompensas']
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -62,6 +66,8 @@ export default function App() {
                 <Route path="/historial" element={<HistoryPage />} />
                 <Route path="/pagar/:id" element={<PaymentPage />} />
                 <Route path="/puntos" element={<PointsPage />} />
+                <Route path="/recompensas" element={<RewardsPage />} />
+                <Route path="/cupones" element={<CouponsPage />} />
                 <Route path="/cuenta" element={<AccountPage />} />
               </Route>
             </Route>
@@ -78,6 +84,11 @@ export default function App() {
                 <Route element={<RequirePerm perms={['cashier']} />}>
                   <Route path="verificacion" element={<VerificationPage />} />
                   <Route path="escanear" element={<ScanPage />} />
+                </Route>
+                <Route element={<RequirePerm perms={['admin']} />}>
+                  <Route path="recompensas" element={<AdminRewardsPage />} />
+                  <Route path="recompensas/nueva" element={<RewardFormPage />} />
+                  <Route path="recompensas/:id" element={<RewardFormPage />} />
                 </Route>
                 <Route element={<RequirePerm perms={['barista', 'manager']} />}>
                   <Route path="barra" element={<BaristaPage />} />

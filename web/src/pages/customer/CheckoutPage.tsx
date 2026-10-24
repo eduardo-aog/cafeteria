@@ -282,11 +282,15 @@ function CheckoutLine({
 
       {editable ? (
         <div className="flex items-center justify-between gap-3">
-          <QuantityStepper
-            value={item.quantity}
-            max={maxQuantity}
-            onChange={(quantity) => update.mutate({ itemId: item.id, quantity })}
-          />
+          {item.couponTitle ? (
+            <p className="text-sm text-muted-foreground">1 unidad con cupón</p>
+          ) : (
+            <QuantityStepper
+              value={item.quantity}
+              max={maxQuantity}
+              onChange={(quantity) => update.mutate({ itemId: item.id, quantity })}
+            />
+          )}
           {isLast ? (
             <ConfirmDialog
               trigger={

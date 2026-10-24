@@ -30,3 +30,10 @@ export function isCouponApplicable(
   if (coupon.type === 'PERCENT_DISCOUNT') return true
   return coupon.productId === product.id
 }
+
+// Días restantes por debajo de los cuales el aviso de canje es más fuerte (8.9).
+export const EXPIRY_WARNING_DAYS = 5
+
+export function isExpiringSoon(daysLeft: number): boolean {
+  return daysLeft < EXPIRY_WARNING_DAYS
+}

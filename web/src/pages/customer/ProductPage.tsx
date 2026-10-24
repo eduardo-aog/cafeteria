@@ -9,7 +9,9 @@ import { StatusBadge } from '@/components/StatusBadge'
 import { Button } from '@/components/ui/button'
 import { useAddToCheckout } from '@/hooks/useCheckouts'
 import { useMenu, useProduct } from '@/hooks/useMenu'
-import { describeOpening } from '@/lib/format'
+import { useProductCoupons } from '@/hooks/useRewards'
+import { describeOpening, formatDate } from '@/lib/format'
+import { describeCoupon, describeDaysLeft } from '@/lib/rewards'
 import { ApiError } from '@/lib/api'
 import { CATEGORY_LABELS } from '@/lib/types'
 
@@ -17,6 +19,7 @@ export default function ProductPage() {
   const { id } = useParams()
   const query = useProduct(id)
   const menu = useMenu()
+  const coupons = useProductCoupons(id)
   const { add, isPending } = useAddToCheckout()
   const [quantity, setQuantity] = useState(1)
   const store = menu.data?.store
@@ -91,6 +94,36 @@ export default function ProductPage() {
               {isPending ? 'Agregando…' : 'Agregar al checkout'}
             </Button>
           </div>
+
+          {coupons.data && coupons.data.coupons.length > 0 && (
+            <section className="flex flex-col gap-3">
+              <h2 className="text-lg">Tus cupones para este producto</h2>
+              <ul className="flex flex-col gap-3">
+                {coupons.data.coupons.map((coupon) => (
+                  <li
+                    key={coupon.id}
+                    className="flex flex-col gap-2 rounded-lg border border-border bg-card p-3"
+                  >
+                    <div>
+                      <p className="font-semibold">{coupon.title}</p>
+                      <p className="text-sm text-muted-foreground">{describeCoupon(coupon)}</p>
+                      <p className="text-sm text-muted-foreground">
+                        Vence el {formatDate(coupon.expiresAt)} ({describeDaysLeft(coupon.daysLeft)}
+                        )
+                      </p>
+                    </div>
+                    <Button
+                      variant="secondary"
+                      disabled={!query.data.product.isAvailable || !store?.isOpen || isPending}
+                      onClick={() => add(query.data.product, 1, coupon.id)}
+                    >
+                      Agregar con cupón
+                    </Button>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
         </article>
       )}
     </div>

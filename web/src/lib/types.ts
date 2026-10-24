@@ -192,3 +192,53 @@ export interface HistoryOrder {
     couponTitle: string | null
   }[]
 }
+
+export type RewardType = 'PERCENT_DISCOUNT' | 'FREE_PRODUCT'
+
+export interface Reward {
+  id: string
+  name: string
+  type: RewardType
+  percent: number | null
+  productId: string | null
+  productName: string | null
+  costPoints: number
+  isActive: boolean
+}
+
+// Cuándo vencería un cupón canjeado hoy (lo calcula el servidor, 8.9).
+export interface ExpiryPreview {
+  expiresAt: string
+  daysLeft: number
+  isExpiringSoon: boolean
+}
+
+export interface RewardsResponse {
+  balance: number
+  expiry: ExpiryPreview
+  rewards: Reward[]
+}
+
+export type CouponStatus = 'AVAILABLE' | 'RESERVED' | 'USED' | 'EXPIRED'
+
+export interface Coupon {
+  id: string
+  title: string
+  type: RewardType
+  percent: number | null
+  productId: string | null
+  productName: string | null
+  status: CouponStatus
+  expiresAt: string
+  usedAt: string | null
+  daysLeft: number
+  isUsable: boolean
+}
+
+export interface PointsMovement {
+  id: string
+  type: 'EARN' | 'REDEEM'
+  points: number
+  createdAt: string
+  couponTitle: string | null
+}

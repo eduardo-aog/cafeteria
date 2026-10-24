@@ -1,6 +1,7 @@
 import cron from 'node-cron'
 import { fetchBcvRate, fetchBcvRateIfStale } from '../services/bcv.js'
 import { expireStaleCheckouts } from '../services/checkoutExpiration.js'
+import { expireStaleCoupons } from '../services/coupons.js'
 import { prisma } from '../lib/prisma.js'
 
 const TIMEZONE = 'America/Caracas'
@@ -23,6 +24,19 @@ export function startJobs() {
         )
     },
     { timezone: TIMEZONE, name: 'expire-checkouts' },
+  )
+
+  // Cada 5 minutos: cupones AVAILABLE cuya fecha ya pasó (8.9, 11).
+  cron.schedule(
+    '*/5 * * * *',
+    () => {
+      expireStaleCoupons(prisma)
+        .then((count) => count > 0 && console.log(`Cupones vencidos: ${count}.`))
+        .catch((err: unknown) =>
+          console.error('No se pudieron vencer cupones:', err instanceof Error ? err.message : err),
+        )
+    },
+    { timezone: TIMEZONE, name: 'expire-coupons' },
   )
 
   // Sin bloquear el arranque: el servidor responde mientras la API del BCV despierta.

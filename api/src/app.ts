@@ -12,6 +12,7 @@ import { baristaRouter } from './routes/barista.js'
 import { cashierRouter } from './routes/cashier.js'
 import { checkoutRouter } from './routes/checkout.js'
 import { ordersRouter } from './routes/orders.js'
+import { rewardsRouter } from './routes/rewards.js'
 import { errorHandler, notFound } from './middleware/error.js'
 
 export const app = express()
@@ -43,6 +44,7 @@ app.use('/api', checkoutRouter)
 app.use('/api', cashierRouter)
 app.use('/api', baristaRouter)
 app.use('/api', ordersRouter)
+app.use('/api', rewardsRouter)
 
 app.use(notFound)
 app.use(errorHandler)
