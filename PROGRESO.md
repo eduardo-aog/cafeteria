@@ -3,7 +3,7 @@
 ## Estado actual
 - Fase: 6 — Pago y verificación
 - Rama: feat/fase-06-pago
-- Paso: esperando ⛔ PARADA 6.A — Preparar el teléfono
+- Paso: trabajo técnico de la Fase 6 terminado; el usuario decidió desplegar antes de probar: esperando ⛔ PARADA 10.0 (adelantada) — Unir la rama antes de desplegar. Después 10.A, 10.B y 10.C, y entonces el cierre ⛔ PARADA 6.Z sobre el sitio publicado
 
 ## Paradas confirmadas
 - 0.A Requisitos previos — 2026-10-23
@@ -81,6 +81,8 @@
 - Fase 6: prueba automatizada de concurrencia `api/src/services/verification.concurrency.test.ts`: dos cajeros aprueban a la vez el mismo envío (y otro caso, aprobar contra rechazar) con un pool de 5 conexiones para que la carrera sea real. Solo una gana, la otra recibe `ALREADY_REVIEWED`, los puntos se acreditan una vez y el registro suma una entrada. Se omite si no existe `api/.env`. Usa fixtures fijos (usuarios `concurrency-*@example.com`); como `VerificationLog` es inmutable, cada ejecución deja una entrada nueva en él. Con la VPN activa tarda ~35 s, así que `npm test` en `api/` tarda lo mismo.
 - Fase 6: las pruebas con Supabase real dejaron pedidos pagados de cuentas de prueba (`e2e6-…`, `ui7-…`) que no se pueden borrar (el registro de verificación es inmutable y bloquea el borrado en cascada). Sus cuentas de Auth se eliminaron; los datos se limpian en la PARADA 10.F. Esos pedidos contarán en los reportes de ventas hasta esa limpieza.
 - Fase 6: con el navegador automatizado no se pueden verificar `COPIAR TODO` ni `PEGAR` (no concede permisos de portapapeles): sí se comprobó el aviso cuando no hay permiso, el filtro de solo dígitos, las validaciones del formulario y todo el flujo. La copia y el pegado reales se prueban en 6.Z con el teléfono.
+- Fase 6 (decisión del usuario, 2026-10-23): no se prueba con `localhost`/teléfono en la red local; se despliega primero en Render y las pruebas de la Fase 6 se hacen sobre el sitio publicado. Por eso la **PARADA 6.A (preparar el teléfono) se omite** y se adelantan de la Fase 10 las paradas 10.0 (unir la rama a `main`), 10.A (servidor), 10.B (página) y 10.C (cruzar las URLs). Quedan para la Fase 10 la 10.D (UptimeRobot), la 10.E y 10.F. Antes de pedir la 10.0 se comprobó: `.node-version` y `package-lock.json` en ambas carpetas, `npm ci --dry-run` sin errores, y la API compilada en modo producción (`node dist/index.js` con `NODE_ENV=production`): `/api/health`, `/api/health/db` y `/api/menu` responden y CORS devuelve `WEB_ORIGIN`. El README documenta las tablas de Render (sin `PORT`: Render asigna el puerto).
+- Fase 6: las pruebas del cierre 6.Z («copiar y pegar» en el teléfono, aprobar desde el cajero, bloqueo por 3 rechazos, referencia repetida y doble aprobación) se harán con las URLs de Render.
 
 ## Contraste de la paleta (10.6, mínimo AA)
 | Pareja | Ratio |
