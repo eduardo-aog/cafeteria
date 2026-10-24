@@ -17,12 +17,13 @@ export default function CustomerLayout() {
       <header className="px-4 pt-4">
         <p className="font-heading text-xl font-semibold">{APP_NAME}</p>
       </header>
-      <main className="flex-1 px-4 pt-6 pb-28">
+      <main className="flex-1 px-4 pt-6 pb-[calc(7rem+env(safe-area-inset-bottom))]">
         <Outlet />
       </main>
       <nav
         aria-label="Navegación principal"
-        className="fixed inset-x-0 bottom-0 bg-primary text-primary-foreground"
+        // Siempre pegada al borde inferior de la pantalla; el borde superior la distingue de los botones verdes.
+        className="fixed inset-x-0 bottom-0 z-30 border-t-2 border-primary-foreground/35 bg-primary pb-[env(safe-area-inset-bottom)] text-primary-foreground"
       >
         <ul className="mx-auto flex max-w-120">
           {NAV.map(({ to, label, icon: Icon }) => (

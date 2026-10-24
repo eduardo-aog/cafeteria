@@ -2,6 +2,7 @@ import { Router } from 'express'
 import { z } from 'zod'
 import { requireAuth } from '../middleware/auth.js'
 import { requirePerm } from '../middleware/permissions.js'
+import { scanOrder } from '../services/pickupOrders.js'
 import {
   approveSubmission,
   listVerificationQueue,
@@ -41,4 +42,10 @@ cashierRouter.post('/cashier/submissions/:id/reject', async (req, res) => {
   const { reason, note } = rejectSchema.parse(req.body)
   await rejectSubmission(req.user!.id, id, { reason, note: note || undefined })
   res.json({ ok: true })
+})
+
+// Escanea el QR o escribe el código corto: el pedido pasa directo a la cola del barista (8.7).
+cashierRouter.post('/cashier/scan', async (req, res) => {
+  const { code } = z.object({ code: z.string().trim().min(1).max(64) }).parse(req.body)
+  res.json(await scanOrder(req.user!.id, code))
 })

@@ -11,6 +11,8 @@ import LoginPage from '@/pages/auth/LoginPage'
 import RegisterPage from '@/pages/auth/RegisterPage'
 import AccountPage from '@/pages/customer/AccountPage'
 import CheckoutPage from '@/pages/customer/CheckoutPage'
+import HistoryPage from '@/pages/customer/HistoryPage'
+import OrderDetailPage from '@/pages/customer/OrderDetailPage'
 import OrdersPage from '@/pages/customer/OrdersPage'
 import PaymentPage from '@/pages/customer/PaymentPage'
 import PointsPage from '@/pages/customer/PointsPage'
@@ -18,9 +20,15 @@ import MenuPage from '@/pages/customer/MenuPage'
 import ProductPage from '@/pages/customer/ProductPage'
 import CatalogPage from '@/pages/staff/CatalogPage'
 import ProductFormPage from '@/pages/staff/ProductFormPage'
+import BaristaPage from '@/pages/staff/BaristaPage'
+import RestorePage from '@/pages/staff/RestorePage'
+import ScanPage from '@/pages/staff/ScanPage'
 import VerificationPage from '@/pages/staff/VerificationPage'
 import { STAFF_SECTIONS } from '@/pages/staff/sections'
 import WorkHome from '@/pages/staff/WorkHome'
+
+// Secciones de trabajo que ya tienen su pantalla; el resto sigue como marcador de posición.
+const HANDLED_PATHS = ['catalogo', 'verificacion', 'escanear', 'barra', 'restaurar']
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -50,6 +58,8 @@ export default function App() {
                 <Route path="/producto/:id" element={<ProductPage />} />
                 <Route path="/checkout" element={<CheckoutPage />} />
                 <Route path="/pedidos" element={<OrdersPage />} />
+                <Route path="/pedidos/:id" element={<OrderDetailPage />} />
+                <Route path="/historial" element={<HistoryPage />} />
                 <Route path="/pagar/:id" element={<PaymentPage />} />
                 <Route path="/puntos" element={<PointsPage />} />
                 <Route path="/cuenta" element={<AccountPage />} />
@@ -63,20 +73,25 @@ export default function App() {
                   <Route path="catalogo" element={<CatalogPage />} />
                   <Route path="catalogo/nuevo" element={<ProductFormPage />} />
                   <Route path="catalogo/:id" element={<ProductFormPage />} />
+                  <Route path="restaurar" element={<RestorePage />} />
                 </Route>
                 <Route element={<RequirePerm perms={['cashier']} />}>
                   <Route path="verificacion" element={<VerificationPage />} />
+                  <Route path="escanear" element={<ScanPage />} />
                 </Route>
-                {STAFF_SECTIONS.filter(
-                  (section) => section.path !== 'catalogo' && section.path !== 'verificacion',
-                ).map((section) => (
-                  <Route key={section.path} element={<RequirePerm perms={section.perms} />}>
-                    <Route
-                      path={section.path}
-                      element={<PagePlaceholder title={section.label} />}
-                    />
-                  </Route>
-                ))}
+                <Route element={<RequirePerm perms={['barista', 'manager']} />}>
+                  <Route path="barra" element={<BaristaPage />} />
+                </Route>
+                {STAFF_SECTIONS.filter((section) => !HANDLED_PATHS.includes(section.path)).map(
+                  (section) => (
+                    <Route key={section.path} element={<RequirePerm perms={section.perms} />}>
+                      <Route
+                        path={section.path}
+                        element={<PagePlaceholder title={section.label} />}
+                      />
+                    </Route>
+                  ),
+                )}
               </Route>
             </Route>
 

@@ -1,9 +1,9 @@
 # Progreso del proyecto
 
 ## Estado actual
-- Fase: 6 — Pago y verificación
-- Rama: main (la rama feat/fase-06-pago ya está unida, PR #6)
-- Paso: esperando ⛔ PARADA 10.B — Página en Render (adelantada). Falta el cierre ⛔ PARADA 6.Z, que se hará sobre el sitio publicado
+- Fase: 7 — Retiro y barra
+- Rama: feat/fase-07-retiro
+- Paso: esperando ⛔ PARADA 7.Z — Cierre de la Fase 7, con pruebas sobre https://vibecoffe.onrender.com
 
 ## Paradas confirmadas
 - 0.A Requisitos previos — 2026-10-23
@@ -15,6 +15,8 @@
 - 4.Z Cierre de la Fase 4 — 2026-10-23
 - 5.Z Cierre de la Fase 5 — 2026-10-23
 - 6.A Preparar el teléfono — omitida por decisión del usuario (se prueba en el sitio publicado)
+- 6.Z Cierre de la Fase 6 — 2026-10-24 (probada por el usuario en https://vibecoffe.onrender.com)
+- 7.A Teléfono como escáner — omitida por decisión del usuario (el sitio publicado ya tiene HTTPS, la cámara funciona sin la red local)
 - 10.0 Unir la rama antes de desplegar (adelantada) — 2026-10-23, PR #6
 - 10.A Servidor en Render (adelantada) — 2026-10-23: https://cafeteria-api-1ej1.onrender.com (`/api/health`, `/api/health/db`, `/api/menu` y `/api/banks` responden; `/api/me` sin sesión da 401)
 
@@ -24,6 +26,7 @@
 - Fase 3 — Autenticación y permisos (unida a main el 2026-10-23, PR #3)
 - Fase 4 — Dominio, tasa BCV, catálogo y menú (unida a main el 2026-10-23, PR #4)
 - Fase 5 — Checkout (unida a main el 2026-10-23, PR #5)
+- Fase 6 — Pago y verificación (unida a main el 2026-10-23, PR #6; cerrada el 2026-10-24)
 
 ## Decisiones menores tomadas
 - Fase 1: el repositorio de GitHub pasó a ser público (decisión del usuario, para facilitar el despliegue). Ningún `.env` ni clave está en el historial.
@@ -87,6 +90,12 @@
 - Fase 6 (decisión del usuario, 2026-10-23): no se prueba con `localhost`/teléfono en la red local; se despliega primero en Render y las pruebas de la Fase 6 se hacen sobre el sitio publicado. Por eso la **PARADA 6.A (preparar el teléfono) se omite** y se adelantan de la Fase 10 las paradas 10.0 (unir la rama a `main`), 10.A (servidor), 10.B (página) y 10.C (cruzar las URLs). Quedan para la Fase 10 la 10.D (UptimeRobot), la 10.E y 10.F. Antes de pedir la 10.0 se comprobó: `.node-version` y `package-lock.json` en ambas carpetas, `npm ci --dry-run` sin errores, y la API compilada en modo producción (`node dist/index.js` con `NODE_ENV=production`): `/api/health`, `/api/health/db` y `/api/menu` responden y CORS devuelve `WEB_ORIGIN`. El README documenta las tablas de Render (sin `PORT`: Render asigna el puerto).
 - Fase 6: las pruebas del cierre 6.Z («copiar y pegar» en el teléfono, aprobar desde el cajero, bloqueo por 3 rechazos, referencia repetida y doble aprobación) se harán con las URLs de Render.
 - Nombre del proyecto (decisión del usuario, 2026-10-23): **Vibecoffe**. `APP_NAME` en `web/src/config.ts` pasa de «Cafetería» a «Vibecoffe» (el valor provisional que preveía la especificación), y también cambian el `<title>` de `web/index.html` y el título del README. Los nombres técnicos (`cafeteria-api` y `cafeteria-web` en Render, `cafeteria` en GitHub y los `name` de los `package.json`) se dejan como están. No hay logotipo: solo el nombre en Lora.
+- Fase 7: el detalle del pedido usa `GET /orders/inventory` (cada 10 s) y, si el pedido ya no está, consulta la primera página de `GET /orders/history` para distinguir «enviado a barra» (muestra el aviso y redirige al historial a los 2,5 s) de «ya no está en tu inventario». No se añadió un endpoint de detalle. El historial pagina por cursor (`scannedAt` descendente, luego id) de 20 en 20 y no incluye QR, código ni estado.
+- Fase 7: escaneo (`POST /cashier/scan`): acepta el contenido del QR (UUID) o el código corto, sin distinguir mayúsculas; el cambio PAID → IN_QUEUE es una actualización condicional (dos escaneos simultáneos: solo uno funciona). Errores: 404 `ORDER_NOT_FOUND`; 409 `ORDER_NOT_SCANNABLE` con «Este pedido ya fue enviado a barra», «Este pedido ya fue entregado» o «Este pedido aún no está pagado».
+- Fase 7: entregar (`ORDER_NOT_IN_QUEUE`, 409) y restaurar (`ORDER_NOT_DELIVERED` y `RESTORE_WINDOW_PASSED`, 409) son actualizaciones condicionales. Al restaurar se conservan `scannedAt` (recupera su lugar en la cola) y `deliveredAt`/`deliveredById` (solo se añaden `restoredAt`/`restoredById`). «Hoy» se calcula en Caracas (`domain/time.ts`). «Entregado» y «Restaurar» piden confirmación; el pedido sale de su lista al instante.
+- Fase 7: el escáner (`@yudiel/react-qr-scanner`) se carga solo al abrir «Escanear» (fragmento aparte de 145 KB) y su decodificador wasm (947 KB) se sirve desde el propio sitio en lugar del CDN que usa por defecto; Chrome de Android usa el lector nativo y Safari de iPhone el wasm. Necesita HTTPS (el sitio publicado lo tiene). El mismo QR no se reenvía durante 4 s. Si la cámara no abre, se avisa y queda el campo de código.
+- Fase 7 (peticiones del usuario): (1) borde superior de 2 px (crema al 35 %) en la barra inferior del cliente para distinguirla de los botones verdes; (2) los avisos (`sonner`) salen arriba a la derecha; (3) refuerzo de la barra inferior: ya era `position: fixed`; se midió en Firefox (escritorio, 1280×800) que queda pegada al borde inferior al hacer scroll al inicio, a la mitad y al final; se le añadieron `z-index`, `viewport-fit=cover` y el margen de zona segura de iPhone (`env(safe-area-inset-bottom)`), por si el problema era en el teléfono; (4) aviso «Pago verificado» (check, centrado sobre la tarjeta) que se desvanece: se detecta en la web que un checkout «En verificación» desaparece de la lista (si lo hubieran rechazado seguiría como «Creado»), se muestra 2,5 s y se desvanece en 0,7 s (el desvanecido de 700 ms es una excepción a los 150 ms de 10.6). Aparece como máximo ~10 s después de aprobar (sondeo del checkout) y solo si el cliente está en `/checkout`; si está en otra pantalla ve el pedido en «Pedidos».
+- Fase 7: verificación: 46 comprobaciones de la API contra Supabase real (permisos, escaneo por código y por QR, carrera de dos escaneos, orden de la cola, entregar, restaurar con ventana de «hoy», historial paginado de 25 pedidos) con pedidos creados directamente en la base y borrados al terminar (sin restos); y la interfaz en Firefox real (QR de 256×256 sobre blanco, redirección al historial 13 s después del escaneo, escáner con código manual, barra, restaurar, gerente en solo lectura, «Pago verificado», barra fija y aviso arriba a la derecha). La cámara real no se puede probar con el navegador automatizado: se prueba en 7.Z con el teléfono.
 
 ## Contraste de la paleta (10.6, mínimo AA)
 | Pareja | Ratio |

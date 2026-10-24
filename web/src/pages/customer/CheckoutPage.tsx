@@ -1,6 +1,7 @@
 import { useIsMutating } from '@tanstack/react-query'
+import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Trash2 } from 'lucide-react'
+import { Check, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
 import { QuantityStepper } from '@/components/QuantityStepper'
@@ -33,6 +34,19 @@ const STATUS_BADGES: Partial<Record<OrderStatus, { tone: BadgeTone; label: strin
 export default function CheckoutPage() {
   const query = useCheckouts()
 
+  // Un checkout en verificación que desaparece de la lista es porque el cajero aprobó el pago (si lo
+  // hubiera rechazado seguiría en la lista, como «Creado»): se muestra un aviso «Pago verificado» y se desvanece.
+  const list = query.data?.checkouts
+  const [previous, setPrevious] = useState(list)
+  const [verified, setVerified] = useState<Checkout[]>([])
+  if (list !== previous) {
+    setPrevious(list)
+    const approved = previous?.filter(
+      (c) => c.status === 'IN_VERIFICATION' && list && !list.some((n) => n.id === c.id),
+    )
+    if (approved && approved.length > 0) setVerified((v) => [...approved, ...v])
+  }
+
   return (
     <div className="flex flex-col gap-6">
       <h1 className="text-2xl">Checkout</h1>
@@ -41,7 +55,15 @@ export default function CheckoutPage() {
       {query.isError && (
         <ErrorBlock message={query.error.message} onRetry={() => void query.refetch()} />
       )}
-      {query.data && query.data.checkouts.length === 0 && (
+      {verified.map((checkout) => (
+        <VerifiedCheckout
+          key={checkout.id}
+          checkout={checkout}
+          maxQuantity={query.data?.maxQuantityPerProduct ?? 10}
+          onDone={() => setVerified((v) => v.filter((c) => c.id !== checkout.id))}
+        />
+      ))}
+      {query.data && query.data.checkouts.length === 0 && verified.length === 0 && (
         <div className="flex flex-col items-center gap-4">
           <EmptyBlock>Tu checkout está vacío. Agrega productos desde el menú.</EmptyBlock>
           <Button asChild variant="secondary">
@@ -56,6 +78,52 @@ export default function CheckoutPage() {
           maxQuantity={query.data.maxQuantityPerProduct}
         />
       ))}
+    </div>
+  )
+}
+
+const VERIFIED_VISIBLE_MS = 2500
+const VERIFIED_FADE_MS = 700
+
+// Tarjeta del pedido recién aprobado, con un aviso centrado «Pago verificado» que se desvanece solo y,
+// con él, la tarjeta (el pedido ya está en «Pedidos»). El desvanecido de 700 ms es una excepción pedida por el usuario a los 150 ms de 10.6.
+function VerifiedCheckout({
+  checkout,
+  maxQuantity,
+  onDone,
+}: {
+  checkout: Checkout
+  maxQuantity: number
+  onDone: () => void
+}) {
+  const [fading, setFading] = useState(false)
+  // onDone cambia en cada render del padre: se guarda en una ref para no reiniciar los temporizadores.
+  const onDoneRef = useRef(onDone)
+  useEffect(() => {
+    onDoneRef.current = onDone
+  })
+  useEffect(() => {
+    const fade = setTimeout(() => setFading(true), VERIFIED_VISIBLE_MS)
+    const done = setTimeout(() => onDoneRef.current(), VERIFIED_VISIBLE_MS + VERIFIED_FADE_MS)
+    return () => {
+      clearTimeout(fade)
+      clearTimeout(done)
+    }
+  }, [])
+
+  return (
+    <div
+      className={`relative transition-opacity ease-out ${fading ? 'opacity-0' : 'opacity-100'}`}
+      style={{ transitionDuration: `${VERIFIED_FADE_MS}ms` }}
+      role="status"
+    >
+      <CheckoutCard checkout={checkout} maxQuantity={maxQuantity} />
+      <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-card/75">
+        <span className="inline-flex items-center gap-2 rounded-full bg-success px-4 py-2 text-sm font-semibold text-primary-foreground">
+          <Check className="size-4" strokeWidth={2} aria-hidden="true" />
+          Pago verificado
+        </span>
+      </div>
     </div>
   )
 }
