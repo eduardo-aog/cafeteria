@@ -4,6 +4,15 @@ Aplicación web de pedidos anticipados (solo retiro en el mostrador) para una ca
 
 La especificación completa está en [`CLAUDE.md`](CLAUDE.md) y el avance, con todas las decisiones tomadas, en [`PROGRESO.md`](PROGRESO.md).
 
+## Estado y sitio publicado
+
+Las 10 fases del proyecto están terminadas, unidas a `main` y desplegadas en Render:
+
+- Página: https://vibecoffe.onrender.com
+- Servidor: https://cafeteria-api-1ej1.onrender.com (`/api/health` y `/api/health/db`)
+
+El servidor gratuito se suspende tras un rato sin tráfico; un monitor de UptimeRobot lo mantiene despierto (ver «Despliegue en Render»). Los cambios nuevos se hacen en ramas `fix/…` o `feat/…` y se unen a `main`, lo que redespliega los dos servicios.
+
 ## Estructura
 
 ```
