@@ -48,7 +48,7 @@
   --card-foreground: #2b1e16;
   --popover: #fffdf9;
   --popover-foreground: #2b1e16;
-  --primary: #1f3d2b;
+  --primary: #283618;
   --primary-foreground: #fffdf9;
   --secondary: #efe4d6;
   --secondary-foreground: #3b2a1f;
@@ -56,14 +56,14 @@
   --muted-foreground: #6b5a4c;
   --accent: #e9dfd0;
   --accent-foreground: #2b1e16;
-  --destructive: #9b2c2c;
+  --destructive: #bc6c25;
   --border: #e4dacb;
   --input: #8f7e6d; /* borde de campos y botones outline: 3,2:1 o más sobre fondo, tarjeta y muted */
-  --ring: #2f6b45;
+  --ring: #606c38;
   --radius: 0.625rem;
   --caramel: #8b5a3c;
-  --success: #2f6b45;
-  --warning: #8a5a12;
+  --success: #606c38;
+  --warning: #dda15e;
 }
 
 @layer base {

@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import { Coffee, Receipt, ShoppingBag, Star, User, type LucideIcon } from 'lucide-react'
+import { Logo } from '@/components/Logo'
 import { APP_NAME } from '@/config'
 import { cn } from '@/lib/utils'
 
@@ -27,8 +28,9 @@ export default function CustomerLayout() {
 
   return (
     <div className="flex h-dvh flex-col">
-      <header className="mx-auto w-full max-w-120 shrink-0 px-4 pt-4">
+      <header className="mx-auto flex w-full max-w-120 shrink-0 items-center gap-1 px-4 pt-4">
         <p className="font-heading text-xl font-semibold">{APP_NAME}</p>
+        <Logo className="size-7 -translate-y-[3px]" />
       </header>
       <main ref={scroller} className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
         <div className="mx-auto w-full max-w-120 px-4 pt-6 pb-6">

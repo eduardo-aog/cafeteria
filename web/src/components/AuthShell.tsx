@@ -1,11 +1,13 @@
 import type { ReactNode } from 'react'
+import { Logo } from '@/components/Logo'
 import { APP_NAME } from '@/config'
 
 export function AuthShell({ title, children }: { title: string; children: ReactNode }) {
   return (
     <div className="mx-auto flex min-h-svh max-w-120 flex-col gap-6 px-4 py-4">
-      <header>
+      <header className="flex items-center gap-1">
         <p className="font-heading text-xl font-semibold">{APP_NAME}</p>
+        <Logo className="size-7 -translate-y-[3px]" />
       </header>
       <h1 className="text-2xl">{title}</h1>
       {children}

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
 import { Dialog } from 'radix-ui'
 import { House, LogOut, Menu, X, type LucideIcon } from 'lucide-react'
+import { Logo } from '@/components/Logo'
 import { Button } from '@/components/ui/button'
 import { APP_NAME } from '@/config'
 import { useAuth } from '@/hooks/useAuth'
@@ -19,9 +20,10 @@ export default function WorkLayout() {
         <WorkMenu />
         <Link
           to="/trabajo"
-          className="inline-flex min-h-11 items-center font-heading text-xl font-semibold"
+          className="ml-2 inline-flex min-h-11 items-center gap-1 font-heading text-xl font-semibold"
         >
           {APP_NAME}
+          <Logo className="size-7 -translate-y-[3px]" />
         </Link>
       </header>
       <main className="flex-1 px-4 pt-4 pb-8">
@@ -47,10 +49,10 @@ function WorkMenu() {
         </Button>
       </Dialog.Trigger>
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 z-50 bg-foreground/40" />
+        <Dialog.Overlay className="fixed inset-0 z-50 bg-foreground/40 duration-200 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:animate-in data-[state=open]:fade-in-0" />
         <Dialog.Content
           aria-describedby={undefined}
-          className="fixed inset-y-0 left-0 z-50 flex w-72 max-w-[85vw] flex-col gap-4 bg-primary p-4 text-primary-foreground outline-none"
+          className="fixed inset-y-0 left-0 z-50 flex w-72 max-w-[85vw] flex-col gap-4 bg-primary p-4 text-primary-foreground outline-none duration-200 ease-out data-[state=closed]:animate-out data-[state=closed]:slide-out-to-left data-[state=open]:animate-in data-[state=open]:slide-in-from-left"
         >
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">

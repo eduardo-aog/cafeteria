@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { Gift, Star, Ticket } from 'lucide-react'
+import { Coffee, Gift, Star, Ticket } from 'lucide-react'
 import { EmptyBlock, ErrorBlock, LoadingBlock } from '@/components/QueryState'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -56,8 +56,21 @@ export default function PointsPage() {
         {movements.length > 0 && (
           <ul className="flex flex-col divide-y divide-border rounded-lg border border-border bg-card">
             {movements.map((m) => (
-              <li key={m.id} className="flex items-center justify-between gap-3 px-4 py-3">
-                <div className="min-w-0">
+              <li key={m.id} className="flex items-center gap-3 px-4 py-3">
+                {/* Ícono aislado en un círculo de color: caramelo para canjes, verde para compras. */}
+                <span
+                  className={cn(
+                    'flex size-10 shrink-0 items-center justify-center rounded-full',
+                    m.type === 'EARN' ? 'bg-success/4 text-success' : 'bg-caramel/4 text-caramel',
+                  )}
+                >
+                  {m.type === 'EARN' ? (
+                    <Coffee className="size-5" strokeWidth={1.5} aria-hidden="true" />
+                  ) : (
+                    <Ticket className="size-5" strokeWidth={1.5} aria-hidden="true" />
+                  )}
+                </span>
+                <div className="min-w-0 flex-1">
                   <p className="font-medium">
                     {m.type === 'EARN'
                       ? 'Compra pagada'
